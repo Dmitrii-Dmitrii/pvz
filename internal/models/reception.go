@@ -6,16 +6,20 @@ import (
 )
 
 type Reception struct {
-	id            pgtype.UUID
-	receptionTime time.Time
-	pvz           Pvz
-	products      []Product
-	state         ReceptionState
+	Id            pgtype.UUID
+	ReceptionTime time.Time
+	PvzId         pgtype.UUID
+	Products      []Product
+	Status        ReceptionStatus
 }
 
-type ReceptionState int
+type ReceptionStatus int
 
 const (
-	InProgress ReceptionState = iota
+	InProgress ReceptionStatus = iota
 	Close
 )
+
+func NewReception(id, pvzId pgtype.UUID, receptionTime time.Time, status ReceptionStatus) *Reception {
+	return &Reception{Id: id, PvzId: pvzId, ReceptionTime: receptionTime, Status: status}
+}

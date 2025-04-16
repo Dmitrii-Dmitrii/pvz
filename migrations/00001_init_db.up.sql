@@ -4,7 +4,7 @@ CREATE TYPE city AS enum (
     'kazan'
     );
 
-CREATE TYPE reception_state AS enum (
+CREATE TYPE reception_status AS enum (
     'in_progress',
     'close'
     );
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS receptions
     id             UUID PRIMARY KEY,
     reception_time TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     pvz_id         UUID            NOT NULL,
-    state          reception_state NOT NULL,
+    status          reception_status NOT NULL,
     FOREIGN KEY (pvz_id) REFERENCES pvzs (id) ON DELETE CASCADE
 );
 

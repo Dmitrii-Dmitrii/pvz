@@ -6,9 +6,9 @@ import (
 )
 
 type Pvz struct {
-	id           pgtype.UUID
-	registerDate time.Time
-	city         City
+	Id           pgtype.UUID
+	RegisterDate time.Time
+	City         City
 }
 
 type City int

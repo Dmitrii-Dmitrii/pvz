@@ -6,9 +6,9 @@ import (
 )
 
 type Product struct {
-	id          pgtype.UUID
-	addingTime  time.Time
-	productType ProductType
+	Id          pgtype.UUID
+	AddingTime  time.Time
+	ProductType ProductType
 }
 
 type ProductType int
