@@ -43,7 +43,7 @@ func (d *DBDriver) GetReception(ctx context.Context, id pgtype.UUID) (*models.Re
 	if err != nil {
 		return nil, fmt.Errorf("failed to get reception: %w", err)
 	}
-	reception := models.NewReception(id, pvzId, receptionTime, status)
+	reception := &models.Reception{Id: id, PvzId: pvzId, ReceptionTime: receptionTime, Status: status}
 	return reception, nil
 }
 

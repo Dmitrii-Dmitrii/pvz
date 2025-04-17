@@ -19,7 +19,3 @@ const (
 	InProgress ReceptionStatus = iota
 	Close
 )
-
-func NewReception(id, pvzId pgtype.UUID, receptionTime time.Time, status ReceptionStatus) *Reception {
-	return &Reception{Id: id, PvzId: pvzId, ReceptionTime: receptionTime, Status: status}
-}
