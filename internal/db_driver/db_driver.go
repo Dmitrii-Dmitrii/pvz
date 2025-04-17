@@ -84,3 +84,39 @@ func (d *DBDriver) CreateProducts(ctx context.Context, products []models.Product
 
 	return nil
 }
+
+func (d *DBDriver) DeleteLastProduct(ctx context.Context, pvzId pgtype.UUID) (pgtype.UUID, error) {
+	tx, err := d.rwdb.Begin(ctx)
+	if err != nil {
+		return pgtype.UUID{}, err
+	}
+	defer tx.Rollback(ctx)
+
+	var receptionId pgtype.UUID
+	err = tx.QueryRow(ctx, queryGetReceptionInProgressId, pvzId).Scan(&receptionId)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return pgtype.UUID{}, fmt.Errorf("no open reception")
+	}
+	if err != nil {
+		return pgtype.UUID{}, fmt.Errorf("failed to get reception in progress id: %w", err)
+	}
+
+	var productId pgtype.UUID
+	err = tx.QueryRow(ctx, queryDeleteLastProduct, receptionId).Scan(&productId)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return pgtype.UUID{}, fmt.Errorf("no product to delete")
+	}
+	if err != nil {
+		return pgtype.UUID{}, fmt.Errorf("failed to delete product: %w", err)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return pgtype.UUID{}, fmt.Errorf("failde to commit transaction: %w", err)
+	}
+
+	return productId, nil
+}
+
+func (d *DBDriver) CloseReception(ctx context.Context, pvzId pgtype.UUID) error {
+	return nil
+}

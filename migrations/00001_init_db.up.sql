@@ -40,5 +40,5 @@ CREATE TABLE IF NOT EXISTS products
     FOREIGN KEY (reception_id) REFERENCES receptions (id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_receptions_pvz_id ON receptions (pvz_id);
-CREATE INDEX idx_products_reception_id ON products (reception_id);
+CREATE INDEX idx_receptions_pvz_id_and_status ON receptions (pvz_id, status);
+CREATE INDEX idx_products_reception_id_and_adding_time ON products (reception_id, adding_time);

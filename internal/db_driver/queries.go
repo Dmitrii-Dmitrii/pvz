@@ -20,7 +20,7 @@ const (
 	queryGetReceptionInProgressId = `
 	SELECT id
 	FROM receptions
-	WHERE pvz_id = $1 AND state = 'in_progress'
+	WHERE pvz_id = $1 AND status = 'in_progress'
 	ORDER BY reception_time DESC
 	LIMIT 1
 	FOR UPDATE
@@ -28,5 +28,16 @@ const (
 	queryCreateProduct = `
 	INSERT INTO products (id, adding_time, product_type, reception_id)
 	VALUES ($1, $2, $3, $4)
+`
+	queryDeleteLastProduct = `
+	DELETE FROM products
+	WHERE id IN (
+		SELECT id 
+		FROM products
+		WHERE reception_id = $1
+		ORDER BY adding_time DESC
+		LIMIT 1
+	)
+	RETURNING id
 `
 )
