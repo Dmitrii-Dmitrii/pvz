@@ -1,15 +1,15 @@
-package db_driver
+package drivers
 
 const (
-	queryCreatePvz = `
-	INSERT INTO pvz (id, register_date, city)
+	QueryCreatePvz = `
+	INSERT INTO pvzs (id, registration_date, city)
 	VALUES ($1, $2, $3)
 `
-	queryCreateReception = `
+	QueryCreateReception = `
 	INSERT INTO receptions (id, reception_time, pvz_id, state)
 	Values ($1, $2, $3, $4)
 `
-	queryGetReception = `
+	QueryGetReception = `
 	SELECT
 	    reception_time, 
 	    pvz_id, 
@@ -17,7 +17,7 @@ const (
 	FROM receptions
 	WHERE id = $1
 `
-	queryGetReceptionInProgressId = `
+	QueryGetReceptionInProgressId = `
 	SELECT id
 	FROM receptions
 	WHERE pvz_id = $1 AND status = 'in_progress'
@@ -25,11 +25,11 @@ const (
 	LIMIT 1
 	FOR UPDATE
 `
-	queryCreateProduct = `
+	QueryCreateProduct = `
 	INSERT INTO products (id, adding_time, product_type, reception_id)
 	VALUES ($1, $2, $3, $4)
 `
-	queryDeleteLastProduct = `
+	QueryDeleteLastProduct = `
 	DELETE FROM products
 	WHERE id IN (
 		SELECT id 
@@ -39,26 +39,26 @@ const (
 		LIMIT 1
 	)
 `
-	queryCloseReception = `
+	QueryCloseReception = `
 	UPDATE receptions
 	SET status = 'close'
 	WHERE id = $1
 `
-	queryGetPvz = `
+	QueryGetPvz = `
 	SELECT
 	    id, 
-	    register_date, 
+	    registration_date, 
 	    city
-	FROM pvz
+	FROM pvzs
 	ORDER BY id
 	LIMIT $1 OFFSET $2
 `
-	queryGetPvzWithReceptionInterval = `
+	QueryGetPvzWithReceptionInterval = `
 	SELECT DISTINCT
 	    p.id, 
-	    p.register_date, 
+	    p.registration_date, 
 	    p.city
-	FROM pvz p
+	FROM pvzs p
 	    JOIN receptions r ON p.id = r.pvz_id
 	WHERE r.reception_time BETWEEN $1 AND $2
 	ORDER BY p.id

@@ -17,17 +17,17 @@ CREATE TYPE product_type AS enum (
 
 CREATE TABLE IF NOT EXISTS pvz
 (
-    id            UUID PRIMARY KEY,
-    register_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    city          city      NOT NULL
+    id                UUID PRIMARY KEY,
+    registration_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    city              city      NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS receptions
 (
     id             UUID PRIMARY KEY,
-    reception_time TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    pvz_id         UUID            NOT NULL,
-    status          reception_status NOT NULL,
+    reception_time TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    pvz_id         UUID             NOT NULL,
+    status         reception_status NOT NULL,
     FOREIGN KEY (pvz_id) REFERENCES pvz (id) ON DELETE CASCADE
 );
 
