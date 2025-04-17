@@ -50,17 +50,13 @@ func (d *DBDriver) GetReception(ctx context.Context, id pgtype.UUID) (*models.Re
 func (d *DBDriver) CreateProducts(ctx context.Context, products []models.Product, pvzId pgtype.UUID) error {
 	tx, err := d.rwdb.Begin(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer tx.Rollback(ctx)
 
-	var receptionId pgtype.UUID
-	err = tx.QueryRow(ctx, queryGetReceptionInProgressId, pvzId).Scan(&receptionId)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return fmt.Errorf("no open reception")
-	}
+	receptionId, err := d.getReceptionInProgressId(ctx, tx, pvzId)
 	if err != nil {
-		return fmt.Errorf("failed to get reception in progress id: %w", err)
+		return err
 	}
 
 	batch := &pgx.Batch{}
@@ -72,28 +68,91 @@ func (d *DBDriver) CreateProducts(ctx context.Context, products []models.Product
 	defer results.Close()
 
 	for range products {
-		_, err := results.Exec()
+		_, err = results.Exec()
 		if err != nil {
 			return fmt.Errorf("failed to create product: %w", err)
 		}
 	}
 
-	if err := tx.Commit(ctx); err != nil {
-		return fmt.Errorf("failde to commit transaction: %w", err)
+	if err = tx.Commit(ctx); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	return nil
 }
 
-func (d *DBDriver) DeleteLastProduct(ctx context.Context, pvzId pgtype.UUID) (pgtype.UUID, error) {
+func (d *DBDriver) DeleteLastProduct(ctx context.Context, pvzId pgtype.UUID) error {
 	tx, err := d.rwdb.Begin(ctx)
 	if err != nil {
-		return pgtype.UUID{}, err
+		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer tx.Rollback(ctx)
 
+	receptionId, err := d.getReceptionInProgressId(ctx, tx, pvzId)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, queryDeleteLastProduct, receptionId)
+	if err != nil {
+		return fmt.Errorf("failed to delete product: %w", err)
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
+}
+
+func (d *DBDriver) CloseReception(ctx context.Context, pvzId pgtype.UUID) error {
+	tx, err := d.rwdb.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	receptionId, err := d.getReceptionInProgressId(ctx, tx, pvzId)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, queryCloseReception, receptionId)
+
+	if err != nil {
+		return fmt.Errorf("failed to close reception: %w", err)
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
+}
+
+func (d *DBDriver) GetPvz(ctx context.Context, limit, offset uint32) ([]models.Pvz, error) {
+	rows, err := d.rwdb.Query(ctx, queryGetPvz, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get pvz: %w", err)
+	}
+	defer rows.Close()
+
+	return makePvzList(rows)
+}
+
+func (d *DBDriver) GetPvzWithReceptionInterval(ctx context.Context, limit, offset uint32, startInterval, endInterval time.Time) ([]models.Pvz, error) {
+	rows, err := d.rwdb.Query(ctx, queryGetPvzWithReceptionInterval, startInterval, endInterval, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get pvz with reception interval: %w", err)
+	}
+	defer rows.Close()
+
+	return makePvzList(rows)
+}
+
+func (d *DBDriver) getReceptionInProgressId(ctx context.Context, tx pgx.Tx, pvzId pgtype.UUID) (pgtype.UUID, error) {
 	var receptionId pgtype.UUID
-	err = tx.QueryRow(ctx, queryGetReceptionInProgressId, pvzId).Scan(&receptionId)
+	err := tx.QueryRow(ctx, queryGetReceptionInProgressId, pvzId).Scan(&receptionId)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return pgtype.UUID{}, fmt.Errorf("no open reception")
 	}
@@ -101,22 +160,31 @@ func (d *DBDriver) DeleteLastProduct(ctx context.Context, pvzId pgtype.UUID) (pg
 		return pgtype.UUID{}, fmt.Errorf("failed to get reception in progress id: %w", err)
 	}
 
-	var productId pgtype.UUID
-	err = tx.QueryRow(ctx, queryDeleteLastProduct, receptionId).Scan(&productId)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return pgtype.UUID{}, fmt.Errorf("no product to delete")
-	}
-	if err != nil {
-		return pgtype.UUID{}, fmt.Errorf("failed to delete product: %w", err)
-	}
-
-	if err := tx.Commit(ctx); err != nil {
-		return pgtype.UUID{}, fmt.Errorf("failde to commit transaction: %w", err)
-	}
-
-	return productId, nil
+	return receptionId, nil
 }
 
-func (d *DBDriver) CloseReception(ctx context.Context, pvzId pgtype.UUID) error {
-	return nil
+func makePvzList(rows pgx.Rows) ([]models.Pvz, error) {
+	var pvzList []models.Pvz
+	for rows.Next() {
+		var id pgtype.UUID
+		var registerDate time.Time
+		var city models.City
+
+		err := rows.Scan(&id, &registerDate, &city)
+		if err != nil {
+			return nil, fmt.Errorf("scan error: %w", err)
+		}
+
+		pvzList = append(pvzList, models.Pvz{
+			Id:           id,
+			RegisterDate: registerDate,
+			City:         city,
+		})
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows error: %w", err)
+	}
+
+	return pvzList, nil
 }

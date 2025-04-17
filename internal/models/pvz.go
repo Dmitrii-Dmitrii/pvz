@@ -18,3 +18,7 @@ const (
 	SPb
 	Kazan
 )
+
+func NewPvz(id pgtype.UUID, registerDate time.Time, city City) *Pvz {
+	return &Pvz{Id: id, RegisterDate: registerDate, City: city}
+}

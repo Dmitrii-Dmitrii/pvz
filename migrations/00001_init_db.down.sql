@@ -1,5 +1,6 @@
-DROP INDEX IF EXISTS idx_products_reception_id;
-DROP INDEX IF EXISTS idx_receptions_pvz_id;
+DROP INDEX IF EXISTS idx_receptions_pvz_id_and_status;
+DROP INDEX IF EXISTS idx_products_reception_id_and_adding_time;
+DROP INDEX IF EXISTS idx_receptions_pvz_id_and_reception_time;
 
 DROP TABLE IF EXISTS products CASCADE;
 DROP TABLE IF EXISTS receptions CASCADE;
