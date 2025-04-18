@@ -33,10 +33,7 @@ func (s *ReceptionService) CreateReception(ctx context.Context, pvzIdDto openapi
 		return nil, err
 	}
 
-	id, err := services.GenerateUuid()
-	if err != nil {
-		return nil, err
-	}
+	id := services.GenerateUuid()
 
 	reception := &reception_model.Reception{Id: id, ReceptionTime: time.Now(), PvzId: pvzId, Status: reception_model.InProgress}
 	err = s.driver.CreateReception(ctx, reception)

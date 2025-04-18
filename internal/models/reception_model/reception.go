@@ -19,8 +19,3 @@ const (
 	InProgress ReceptionStatus = "in_progress"
 	Close      ReceptionStatus = "close"
 )
-
-type ReceptionKey struct {
-	PvzID       pgtype.UUID
-	ReceptionID pgtype.UUID
-}

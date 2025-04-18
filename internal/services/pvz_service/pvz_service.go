@@ -24,10 +24,7 @@ func (s *PvzService) CreatePvz(ctx context.Context, pvzDto generated.PVZ) (*gene
 	var id pgtype.UUID
 	var err error
 	if pvzDto.Id == nil {
-		id, err = services.GenerateUuid()
-		if err != nil {
-			return nil, err
-		}
+		id = services.GenerateUuid()
 	} else {
 		id, err = services.ConvertOpenAPIUuidToPgType(*pvzDto.Id)
 		if err != nil {

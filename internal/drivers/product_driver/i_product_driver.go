@@ -3,6 +3,7 @@ package product_driver
 import (
 	"context"
 	"github.com/jackc/pgx/v5/pgtype"
+	"pvz/internal/models/product_model"
 )
 
 type IProductDriver interface {

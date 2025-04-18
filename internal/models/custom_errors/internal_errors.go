@@ -21,9 +21,7 @@ var (
 	ErrCommitTransaction = &InternalError{Message: "failed to commit transaction"}
 	ErrScanRow           = &InternalError{Message: "failed to scan row"}
 
-	ErrSetUuid              = &InternalError{Message: "failed to set uuid"}
-	ErrConvertUuidToPgtype  = &InternalError{Message: "failed to convert uuid to pgtype"}
-	ErrUuidNotPresent       = &InternalError{Message: "invalid UUID: not present"}
+	ErrUuidNotValid         = &InternalError{Message: "invalid UUID"}
 	ErrConvertUuidToOpenapi = &InternalError{Message: "failed to convert uuid to openapi types"}
 
 	ErrCreatePvz = &InternalError{Message: "failed to create pvz"}

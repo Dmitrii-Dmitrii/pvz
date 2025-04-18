@@ -8,17 +8,15 @@ import (
 	"pvz/internal/models/custom_errors"
 )
 
-func GenerateUuid() (pgtype.UUID, error) {
-	setUuid := uuid.New()
+func GenerateUuid() pgtype.UUID {
+	newUuid := uuid.New()
 
-	pgUUID := pgtype.UUID{}
-	err := pgUUID.Set(setUuid)
-	if err != nil {
-		log.Error().Err(err).Msg(custom_errors.ErrSetUuid.Message)
-		return pgtype.UUID{}, custom_errors.ErrSetUuid
+	pgUuid := pgtype.UUID{
+		Bytes: newUuid,
+		Valid: true,
 	}
 
-	return pgUUID, nil
+	return pgUuid
 }
 
 func ConvertOpenAPIUuidToPgType(openapiUuid openapi_types.UUID) (pgtype.UUID, error) {
@@ -28,20 +26,18 @@ func ConvertOpenAPIUuidToPgType(openapiUuid openapi_types.UUID) (pgtype.UUID, er
 		return pgtype.UUID{}, custom_errors.ErrUuidFormat
 	}
 
-	var pgUUID pgtype.UUID
-	err = pgUUID.Set(stdUuid)
-	if err != nil {
-		log.Error().Err(err).Msg(custom_errors.ErrConvertUuidToPgtype.Message)
-		return pgtype.UUID{}, custom_errors.ErrConvertUuidToPgtype
+	pgUuid := pgtype.UUID{
+		Bytes: stdUuid,
+		Valid: true,
 	}
 
-	return pgUUID, nil
+	return pgUuid, nil
 }
 
 func ConvertPgUuidToOpenAPI(pgUuid pgtype.UUID) (openapi_types.UUID, error) {
-	if pgUuid.Status != pgtype.Present {
-		log.Error().Msg(custom_errors.ErrUuidNotPresent.Message)
-		return openapi_types.UUID{}, custom_errors.ErrUuidNotPresent
+	if !pgUuid.Valid {
+		log.Error().Msg(custom_errors.ErrUuidNotValid.Message)
+		return openapi_types.UUID{}, custom_errors.ErrUuidNotValid
 	}
 
 	stdUuid, err := uuid.FromBytes(pgUuid.Bytes[:])

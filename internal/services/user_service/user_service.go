@@ -27,10 +27,7 @@ func (s *UserService) DummyLogin(ctx context.Context, roleDto generated.UserRole
 		return "", err
 	}
 
-	id, err := services.GenerateUuid()
-	if err != nil {
-		return "", err
-	}
+	id := services.GenerateUuid()
 
 	email := id.String() + "@example.com"
 	passwordHash := make([]byte, 0)

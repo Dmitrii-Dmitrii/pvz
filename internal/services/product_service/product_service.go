@@ -39,10 +39,7 @@ func (s *ProductService) CreateProduct(ctx context.Context, pvzIdDto openapi_typ
 		return nil, err
 	}
 
-	id, err := services.GenerateUuid()
-	if err != nil {
-		return nil, err
-	}
+	id := services.GenerateUuid()
 
 	product := &products2.Product{Id: id, AddingTime: time.Now(), ProductType: productType}
 	receptionId, err := s.driver.CreateProduct(ctx, product, pvzId)
