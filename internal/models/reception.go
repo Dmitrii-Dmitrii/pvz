@@ -9,13 +9,18 @@ type Reception struct {
 	Id            pgtype.UUID
 	ReceptionTime time.Time
 	PvzId         pgtype.UUID
-	Products      []Product
+	ProductIds    []pgtype.UUID
 	Status        ReceptionStatus
 }
 
-type ReceptionStatus int
+type ReceptionStatus string
 
 const (
-	InProgress ReceptionStatus = iota
-	Close
+	InProgress ReceptionStatus = "in_progress"
+	Close      ReceptionStatus = "close"
 )
+
+type ReceptionKey struct {
+	PvzID       pgtype.UUID
+	ReceptionID pgtype.UUID
+}

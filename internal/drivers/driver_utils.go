@@ -3,19 +3,22 @@ package drivers
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/jackc/pgx/pgtype"
 	"github.com/jackc/pgx/v5"
+	"github.com/rs/zerolog/log"
+	"pvz/internal/models/custom_errors"
 )
 
 func GetReceptionInProgressId(ctx context.Context, tx pgx.Tx, pvzId pgtype.UUID) (pgtype.UUID, error) {
 	var receptionId pgtype.UUID
 	err := tx.QueryRow(ctx, QueryGetReceptionInProgressId, pvzId).Scan(&receptionId)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return pgtype.UUID{}, fmt.Errorf("no open receptions")
+		log.Error().Err(err).Msg(custom_errors.ErrNoOpenReception.Message)
+		return pgtype.UUID{}, custom_errors.ErrNoOpenReception
 	}
 	if err != nil {
-		return pgtype.UUID{}, fmt.Errorf("failed to get receptions in progress id: %w", err)
+		log.Error().Err(err).Msg(custom_errors.ErrGetReceptionInProgress.Message)
+		return pgtype.UUID{}, custom_errors.ErrGetReceptionInProgress
 	}
 
 	return receptionId, nil

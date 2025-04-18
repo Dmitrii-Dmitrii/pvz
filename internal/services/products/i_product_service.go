@@ -7,6 +7,6 @@ import (
 )
 
 type IProductService interface {
-	CreateProduct(ctx context.Context, pvzIdDto openapi_types.UUID, productTypeDto generated.ProductType) error
+	CreateProduct(ctx context.Context, pvzIdDto openapi_types.UUID, productTypeDto generated.ProductType) (*generated.Product, error)
 	DeleteLastProduct(ctx context.Context, pvzIdDto openapi_types.UUID) error
 }

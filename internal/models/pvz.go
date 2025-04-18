@@ -11,10 +11,10 @@ type Pvz struct {
 	City             City
 }
 
-type City int
+type City string
 
 const (
-	Moscow City = iota
-	SPb
-	Kazan
+	Moscow City = "moscow"
+	SPb    City = "spb"
+	Kazan  City = "kazan"
 )

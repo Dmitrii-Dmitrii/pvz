@@ -6,6 +6,6 @@ import (
 )
 
 type IPvzService interface {
-	CreatePvz(ctx context.Context, cityDto generated.PVZCity) (*generated.PVZ, error)
-	// GetPvz methods
+	CreatePvz(ctx context.Context, pvzDto generated.PVZ) (*generated.PVZ, error)
+	GetPvz(ctx context.Context, pvzParams generated.GetPvzParams) ([]map[string]interface{}, error)
 }

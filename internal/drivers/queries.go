@@ -45,23 +45,25 @@ const (
 	WHERE id = $1
 `
 	QueryGetPvz = `
-	SELECT
-	    id, 
-	    registration_date, 
-	    city
-	FROM pvzs
-	ORDER BY id
-	LIMIT $1 OFFSET $2
+	SELECT 
+		p.id, 
+		p.registration_date, 
+		p.city,
+		r.id,
+		r.reception_time, 
+		r.status, 
+		pr.id, 
+		pr.adding_time, 
+		pr.product_type
+	FROM pvz p
+	LEFT JOIN receptions r ON p.id = r.pvz_id
+	LEFT JOIN products pr ON r.id = pr.reception_id
 `
-	QueryGetPvzWithReceptionInterval = `
-	SELECT DISTINCT
-	    p.id, 
-	    p.registration_date, 
-	    p.city
-	FROM pvzs p
-	    JOIN receptions r ON p.id = r.pvz_id
-	WHERE r.reception_time BETWEEN $1 AND $2
-	ORDER BY p.id
-	LIMIT $3 OFFSET $4
+	QueryGetLastReceptionStatus = `
+	SELECT status
+	FROM receptions
+	WHERE pvz_id = $1
+	ORDER BY reception_time DESC
+	LIMIT 1
 `
 )

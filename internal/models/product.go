@@ -11,10 +11,10 @@ type Product struct {
 	ProductType ProductType
 }
 
-type ProductType int
+type ProductType string
 
 const (
-	Electronics ProductType = iota
-	Clothes
-	Shoes
+	Electronics ProductType = "electronics"
+	Clothes     ProductType = "closes"
+	Shoes       ProductType = "shoes"
 )

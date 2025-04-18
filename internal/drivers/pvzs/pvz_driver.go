@@ -6,8 +6,12 @@ import (
 	"github.com/jackc/pgx/pgtype"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/rs/zerolog/log"
 	"pvz/internal/drivers"
+	"pvz/internal/generated"
 	"pvz/internal/models"
+	"pvz/internal/models/custom_errors"
+	"pvz/internal/services"
 	"time"
 )
 
@@ -20,55 +24,170 @@ func NewPvzDriver(rwdb *pgxpool.Pool) *PvzDriver {
 }
 
 func (d *PvzDriver) CreatePvz(ctx context.Context, pvz *models.Pvz) (*models.Pvz, error) {
-	err := d.rwdb.QueryRow(ctx, drivers.QueryCreatePvz, pvz.Id, pvz.RegistrationDate, pvz.City)
+	_, err := d.rwdb.Exec(ctx, drivers.QueryCreatePvz, pvz.Id, pvz.RegistrationDate, pvz.City)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create pvzs: %w", err)
+		log.Error().Err(err).Msg(custom_errors.ErrCreatePvz.Message)
+		return nil, custom_errors.ErrCreatePvz
 	}
 	return pvz, nil
 }
 
-func (d *PvzDriver) GetPvz(ctx context.Context, limit, offset uint32) ([]models.Pvz, error) {
-	rows, err := d.rwdb.Query(ctx, drivers.QueryGetPvz, limit, offset)
+func (d *PvzDriver) GetPvz(ctx context.Context, limit, offset uint32, startInterval, endInterval *time.Time) ([]map[string]interface{}, error) {
+	query, params := getQueryGetPvz(limit, offset, startInterval, endInterval)
+
+	rows, err := d.rwdb.Query(ctx, query, params...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get pvzs: %w", err)
+		log.Error().Err(err).Msg(custom_errors.ErrGetPvz.Message)
+		return nil, custom_errors.ErrGetPvz
 	}
 	defer rows.Close()
 
-	return makePvzList(rows)
-}
-
-func (d *PvzDriver) GetPvzWithReceptionInterval(ctx context.Context, limit, offset uint32, startInterval, endInterval time.Time) ([]models.Pvz, error) {
-	rows, err := d.rwdb.Query(ctx, drivers.QueryGetPvzWithReceptionInterval, startInterval, endInterval, limit, offset)
+	pvzMap, err := scanRowsToGetPvz(rows)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get pvzs with receptions interval: %w", err)
+		return nil, err
 	}
-	defer rows.Close()
 
-	return makePvzList(rows)
+	result := make([]map[string]interface{}, 0, len(pvzMap))
+	for _, pvz := range pvzMap {
+		result = append(result, pvz)
+	}
+
+	return result, nil
 }
 
-func makePvzList(rows pgx.Rows) ([]models.Pvz, error) {
-	var pvzList []models.Pvz
-	for rows.Next() {
-		var id pgtype.UUID
-		var registrationDate time.Time
-		var city models.City
+func getQueryGetPvz(limit, offset uint32, startInterval, endInterval *time.Time) (string, []interface{}) {
+	query := drivers.QueryGetPvz
+	var params []interface{}
+	paramCnt := 0
 
-		err := rows.Scan(&id, &registrationDate, &city)
-		if err != nil {
-			return nil, fmt.Errorf("scan error: %w", err)
+	if startInterval != nil || endInterval != nil {
+		query += " WHERE "
+
+		if startInterval != nil {
+			paramCnt++
+			query += fmt.Sprintf("r.reception_time >= $%d", paramCnt)
+			params = append(params, *startInterval)
 		}
 
-		pvzList = append(pvzList, models.Pvz{
-			Id:               id,
-			RegistrationDate: registrationDate,
-			City:             city,
-		})
+		if startInterval != nil && endInterval != nil {
+			query += " AND "
+		}
+
+		if endInterval != nil {
+			paramCnt++
+			query += fmt.Sprintf("r.reception_time <= $%d", paramCnt)
+			params = append(params, *endInterval)
+		}
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("rows error: %w", err)
+	paramCnt++
+	query += fmt.Sprintf(" ORDER BY p.id, r.reception_time DESC LIMIT $%d", paramCnt)
+	params = append(params, limit)
+	paramCnt++
+	query += fmt.Sprintf(" OFFSET $%d", paramCnt)
+	params = append(params, offset)
+
+	return query, params
+}
+
+func scanRowsToGetPvz(rows pgx.Rows) (map[pgtype.UUID]map[string]interface{}, error) {
+	pvzMap := make(map[pgtype.UUID]map[string]interface{})
+
+	for rows.Next() {
+		var pvzId, receptionId, productId pgtype.UUID
+		var registrationDate, receptionTime, addingTime *time.Time
+		var pvzCity models.City
+		var receptionStatus *models.ReceptionStatus
+		var productType *models.ProductType
+
+		err := rows.Scan(
+			&pvzId,
+			&registrationDate,
+			&pvzCity,
+			&receptionId,
+			&receptionTime,
+			&receptionStatus,
+			&productId,
+			&addingTime,
+			&productType,
+		)
+		if err != nil {
+			log.Error().Err(err).Msg(custom_errors.ErrScanRow.Message)
+			return nil, custom_errors.ErrScanRow
+		}
+
+		pvzIdDto, err := services.ConvertPgUuidToOpenAPI(pvzId)
+		if err != nil {
+			return nil, err
+		}
+
+		pvzObj, exists := pvzMap[pvzId]
+		if !exists {
+			pvzObj = map[string]interface{}{
+				"pvz": generated.PVZ{
+					Id:               &pvzIdDto,
+					RegistrationDate: registrationDate,
+					City:             generated.PVZCity(pvzCity),
+				},
+				"receptions": []map[string]interface{}{},
+			}
+			pvzMap[pvzId] = pvzObj
+		}
+
+		if receptionId.Status != pgtype.Present {
+			continue
+		}
+
+		receptions := pvzObj["receptions"].([]map[string]interface{})
+		var receptionObj map[string]interface{}
+
+		receptionIdDto, err := services.ConvertPgUuidToOpenAPI(receptionId)
+		if err != nil {
+			return nil, err
+		}
+
+		receptionExists := false
+		for i, reception := range receptions {
+
+			if reception["reception"].(generated.Reception).Id.String() == receptionIdDto.String() {
+				receptionExists = true
+				receptionObj = receptions[i]
+				break
+			}
+		}
+
+		if !receptionExists {
+			receptionObj = map[string]interface{}{
+				"reception": generated.Reception{
+					Id:       &receptionIdDto,
+					PvzId:    pvzIdDto,
+					DateTime: *registrationDate,
+					Status:   generated.ReceptionStatus(*receptionStatus),
+				},
+				"products": []generated.Product{},
+			}
+			receptions = append(receptions, receptionObj)
+			pvzObj["receptions"] = receptions
+		}
+
+		if productId.Status != pgtype.Present {
+			continue
+		}
+
+		productIdDto, err := services.ConvertPgUuidToOpenAPI(productId)
+		if err != nil {
+			return nil, err
+		}
+
+		productDto := generated.Product{
+			Id:          &productIdDto,
+			ReceptionId: receptionIdDto,
+			DateTime:    addingTime,
+			Type:        generated.ProductType(*productType),
+		}
+
+		receptionObj["products"] = append(receptionObj["products"].([]generated.Product), productDto)
 	}
 
-	return pvzList, nil
+	return pvzMap, nil
 }
