@@ -1,7 +1,7 @@
-package models
+package reception_model
 
 import (
-	"github.com/jackc/pgx/pgtype"
+	"github.com/jackc/pgx/v5/pgtype"
 	"time"
 )
 

@@ -1,4 +1,4 @@
-package pvzs
+package pvz_service
 
 import (
 	"context"

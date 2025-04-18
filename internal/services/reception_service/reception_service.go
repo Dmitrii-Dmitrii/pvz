@@ -1,24 +1,24 @@
-package receptions
+package reception_service
 
 import (
 	"context"
 	"errors"
-	"github.com/jackc/pgx/pgtype"
+	"github.com/jackc/pgx/v5/pgtype"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/rs/zerolog/log"
-	"pvz/internal/drivers/receptions"
+	"pvz/internal/drivers/reception_driver"
 	"pvz/internal/generated"
-	"pvz/internal/models"
 	"pvz/internal/models/custom_errors"
+	"pvz/internal/models/reception_model"
 	"pvz/internal/services"
 	"time"
 )
 
 type ReceptionService struct {
-	driver receptions.IReceptionDriver
+	driver reception_driver.IReceptionDriver
 }
 
-func NewReceptionService(driver receptions.IReceptionDriver) *ReceptionService {
+func NewReceptionService(driver reception_driver.IReceptionDriver) *ReceptionService {
 	return &ReceptionService{driver: driver}
 }
 
@@ -38,7 +38,7 @@ func (s *ReceptionService) CreateReception(ctx context.Context, pvzIdDto openapi
 		return nil, err
 	}
 
-	reception := &models.Reception{Id: id, ReceptionTime: time.Now(), PvzId: pvzId, Status: models.InProgress}
+	reception := &reception_model.Reception{Id: id, ReceptionTime: time.Now(), PvzId: pvzId, Status: reception_model.InProgress}
 	err = s.driver.CreateReception(ctx, reception)
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (s *ReceptionService) CheckLastReceptionStatus(ctx context.Context, pvzId p
 		return err
 	}
 
-	if *status == models.Close {
+	if *status == reception_model.Close {
 		log.Error().Msg(custom_errors.ErrNoOpenReception.Message)
 		return custom_errors.ErrNoOpenReception
 	}

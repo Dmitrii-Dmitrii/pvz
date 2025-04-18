@@ -1,22 +1,22 @@
-package pvzs
+package pvz_service
 
 import (
 	"context"
-	"github.com/jackc/pgx/pgtype"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/rs/zerolog/log"
-	"pvz/internal/drivers/pvzs"
+	"pvz/internal/drivers/pvz_driver"
 	"pvz/internal/generated"
-	"pvz/internal/models"
 	"pvz/internal/models/custom_errors"
+	pvzs2 "pvz/internal/models/pvz_model"
 	"pvz/internal/services"
 	"time"
 )
 
 type PvzService struct {
-	driver pvzs.IPvzDriver
+	driver pvz_driver.IPvzDriver
 }
 
-func NewPvzService(driver pvzs.IPvzDriver) *PvzService {
+func NewPvzService(driver pvz_driver.IPvzDriver) *PvzService {
 	return &PvzService{driver: driver}
 }
 
@@ -40,7 +40,12 @@ func (s *PvzService) CreatePvz(ctx context.Context, pvzDto generated.PVZ) (*gene
 		registrationDate = *pvzDto.RegistrationDate
 	}
 
-	pvz := &models.Pvz{Id: id, RegistrationDate: registrationDate, City: models.City(pvzDto.City)}
+	city, err := mapCityDtoToCity(pvzDto.City)
+	if err != nil {
+		return nil, err
+	}
+
+	pvz := &pvzs2.Pvz{Id: id, RegistrationDate: registrationDate, City: city}
 
 	_, err = s.driver.CreatePvz(ctx, pvz)
 	if err != nil {
@@ -81,4 +86,18 @@ func (s *PvzService) GetPvz(ctx context.Context, pvzParams generated.GetPvzParam
 	offset := (page - 1) * limit
 
 	return s.driver.GetPvz(ctx, uint32(limit), uint32(offset), pvzParams.StartDate, pvzParams.EndDate)
+}
+
+func mapCityDtoToCity(cityDto generated.PVZCity) (pvzs2.City, error) {
+	switch cityDto {
+	case generated.Москва:
+		return pvzs2.Moscow, nil
+	case generated.СанктПетербург:
+		return pvzs2.SPb, nil
+	case generated.Казань:
+		return pvzs2.Kazan, nil
+	default:
+		log.Error().Msg(custom_errors.ErrPvzCity.Message)
+		return "", custom_errors.ErrPvzCity
+	}
 }

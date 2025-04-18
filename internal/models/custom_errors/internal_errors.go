@@ -16,10 +16,6 @@ func (e *InternalError) Error() string {
 	return e.Message
 }
 
-func (e *InternalError) Unwrap() error {
-	return e.Err
-}
-
 var (
 	ErrBeginTransaction  = &InternalError{Message: "failed to begin transaction"}
 	ErrCommitTransaction = &InternalError{Message: "failed to commit transaction"}
@@ -41,4 +37,8 @@ var (
 
 	ErrCreateProduct = &InternalError{Message: "failed to create product"}
 	ErrDeleteProduct = &InternalError{Message: "failed to delete product"}
+
+	ErrCreateUser       = &InternalError{Message: "failed to create user"}
+	ErrGetUserByEmail   = &InternalError{Message: "failed to get user by email"}
+	ErrGenerateJWTToken = &InternalError{Message: "failed to generate jwt token"}
 )

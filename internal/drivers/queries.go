@@ -2,11 +2,11 @@ package drivers
 
 const (
 	QueryCreatePvz = `
-	INSERT INTO pvzs (id, registration_date, city)
+	INSERT INTO pvz_driver (id, registration_date, city)
 	VALUES ($1, $2, $3)
 `
 	QueryCreateReception = `
-	INSERT INTO receptions (id, reception_time, pvz_id, state)
+	INSERT INTO reception_driver (id, reception_time, pvz_id, state)
 	Values ($1, $2, $3, $4)
 `
 	QueryGetReception = `
@@ -14,33 +14,33 @@ const (
 	    reception_time, 
 	    pvz_id, 
 	    state
-	FROM receptions
+	FROM reception_driver
 	WHERE id = $1
 `
 	QueryGetReceptionInProgressId = `
 	SELECT id
-	FROM receptions
+	FROM reception_driver
 	WHERE pvz_id = $1 AND status = 'in_progress'
 	ORDER BY reception_time DESC
 	LIMIT 1
 	FOR UPDATE
 `
 	QueryCreateProduct = `
-	INSERT INTO products (id, adding_time, product_type, reception_id)
+	INSERT INTO product_driver (id, adding_time, product_type, reception_id)
 	VALUES ($1, $2, $3, $4)
 `
 	QueryDeleteLastProduct = `
-	DELETE FROM products
+	DELETE FROM product_driver
 	WHERE id IN (
 		SELECT id 
-		FROM products
+		FROM product_driver
 		WHERE reception_id = $1
 		ORDER BY adding_time DESC
 		LIMIT 1
 	)
 `
 	QueryCloseReception = `
-	UPDATE receptions
+	UPDATE reception_driver
 	SET status = 'close'
 	WHERE id = $1
 `
@@ -56,14 +56,23 @@ const (
 		pr.adding_time, 
 		pr.product_type
 	FROM pvz p
-	LEFT JOIN receptions r ON p.id = r.pvz_id
-	LEFT JOIN products pr ON r.id = pr.reception_id
+	LEFT JOIN reception_driver r ON p.id = r.pvz_id
+	LEFT JOIN product_driver pr ON r.id = pr.reception_id
 `
 	QueryGetLastReceptionStatus = `
 	SELECT status
-	FROM receptions
+	FROM reception_driver
 	WHERE pvz_id = $1
 	ORDER BY reception_time DESC
 	LIMIT 1
+`
+	QueryCreateUser = `
+	INSERT INTO user (id, email, password_hash, user_role)
+	VALUES ($1, $2, $3, $4)
+`
+	QueryGetUserByEmail = `
+	SELECT id, email, password_hash, user_role
+	FROM user
+	WHERE email = $1
 `
 )

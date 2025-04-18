@@ -1,16 +1,18 @@
-package pvzs
+package pvz_driver
 
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/pgtype"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog/log"
 	"pvz/internal/drivers"
 	"pvz/internal/generated"
-	"pvz/internal/models"
 	"pvz/internal/models/custom_errors"
+	"pvz/internal/models/product_model"
+	"pvz/internal/models/pvz_model"
+	"pvz/internal/models/reception_model"
 	"pvz/internal/services"
 	"time"
 )
@@ -23,7 +25,7 @@ func NewPvzDriver(rwdb *pgxpool.Pool) *PvzDriver {
 	return &PvzDriver{rwdb: rwdb}
 }
 
-func (d *PvzDriver) CreatePvz(ctx context.Context, pvz *models.Pvz) (*models.Pvz, error) {
+func (d *PvzDriver) CreatePvz(ctx context.Context, pvz *pvzs.Pvz) (*pvzs.Pvz, error) {
 	_, err := d.rwdb.Exec(ctx, drivers.QueryCreatePvz, pvz.Id, pvz.RegistrationDate, pvz.City)
 	if err != nil {
 		log.Error().Err(err).Msg(custom_errors.ErrCreatePvz.Message)
@@ -96,9 +98,9 @@ func scanRowsToGetPvz(rows pgx.Rows) (map[pgtype.UUID]map[string]interface{}, er
 	for rows.Next() {
 		var pvzId, receptionId, productId pgtype.UUID
 		var registrationDate, receptionTime, addingTime *time.Time
-		var pvzCity models.City
-		var receptionStatus *models.ReceptionStatus
-		var productType *models.ProductType
+		var pvzCity pvzs.City
+		var receptionStatus *reception_model.ReceptionStatus
+		var productType *product_model.ProductType
 
 		err := rows.Scan(
 			&pvzId,
@@ -129,16 +131,16 @@ func scanRowsToGetPvz(rows pgx.Rows) (map[pgtype.UUID]map[string]interface{}, er
 					RegistrationDate: registrationDate,
 					City:             generated.PVZCity(pvzCity),
 				},
-				"receptions": []map[string]interface{}{},
+				"reception_driver": []map[string]interface{}{},
 			}
 			pvzMap[pvzId] = pvzObj
 		}
 
-		if receptionId.Status != pgtype.Present {
+		if !receptionId.Valid {
 			continue
 		}
 
-		receptions := pvzObj["receptions"].([]map[string]interface{})
+		receptions := pvzObj["reception_driver"].([]map[string]interface{})
 		var receptionObj map[string]interface{}
 
 		receptionIdDto, err := services.ConvertPgUuidToOpenAPI(receptionId)
@@ -164,13 +166,13 @@ func scanRowsToGetPvz(rows pgx.Rows) (map[pgtype.UUID]map[string]interface{}, er
 					DateTime: *registrationDate,
 					Status:   generated.ReceptionStatus(*receptionStatus),
 				},
-				"products": []generated.Product{},
+				"product_driver": []generated.Product{},
 			}
 			receptions = append(receptions, receptionObj)
-			pvzObj["receptions"] = receptions
+			pvzObj["reception_driver"] = receptions
 		}
 
-		if productId.Status != pgtype.Present {
+		if !productId.Valid {
 			continue
 		}
 
@@ -186,7 +188,7 @@ func scanRowsToGetPvz(rows pgx.Rows) (map[pgtype.UUID]map[string]interface{}, er
 			Type:        generated.ProductType(*productType),
 		}
 
-		receptionObj["products"] = append(receptionObj["products"].([]generated.Product), productDto)
+		receptionObj["product_driver"] = append(receptionObj["product_driver"].([]generated.Product), productDto)
 	}
 
 	return pvzMap, nil

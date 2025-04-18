@@ -14,10 +14,6 @@ func (e *UserError) Error() string {
 	return e.Message
 }
 
-func (e *UserError) Unwrap() error {
-	return e.Err
-}
-
 var (
 	ErrNoOpenReception = &UserError{Message: "no open reception"}
 	ErrNoReception     = &UserError{Message: "no reception"}
@@ -25,4 +21,7 @@ var (
 	ErrLimitValue      = &UserError{Message: "limit must be between 1 and 30"}
 	ErrPageValue       = &UserError{Message: "page must be greater than zero"}
 	ErrUuidFormat      = &UserError{Message: "invalid UUID format"}
+	ErrProductType     = &UserError{Message: "invalid product type"}
+	ErrPvzCity         = &UserError{Message: "invalid pvz city"}
+	ErrUserRole        = &UserError{Message: "invalid user role"}
 )

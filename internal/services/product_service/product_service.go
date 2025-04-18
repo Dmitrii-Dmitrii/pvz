@@ -1,29 +1,33 @@
-package products
+package product_service
 
 import (
 	"context"
 	"errors"
 	openapi_types "github.com/oapi-codegen/runtime/types"
-	"pvz/internal/drivers/products"
+	"github.com/rs/zerolog/log"
+	"pvz/internal/drivers/product_driver"
 	"pvz/internal/generated"
-	"pvz/internal/models"
 	"pvz/internal/models/custom_errors"
+	products2 "pvz/internal/models/product_model"
 	"pvz/internal/services"
-	"pvz/internal/services/receptions"
+	"pvz/internal/services/reception_service"
 	"time"
 )
 
 type ProductService struct {
-	driver           products.IProductDriver
-	receptionService receptions.IReceptionService
+	driver           product_driver.IProductDriver
+	receptionService reception_service.IReceptionService
 }
 
-func NewProductService(driver products.IProductDriver, receptionService receptions.IReceptionService) *ProductService {
+func NewProductService(driver product_driver.IProductDriver, receptionService reception_service.IReceptionService) *ProductService {
 	return &ProductService{driver: driver, receptionService: receptionService}
 }
 
-func (s *ProductService) CreateProduct(ctx context.Context, pvzIdDto openapi_types.UUID, productTypeDto generated.ProductType) (*generated.Product, error) {
-	productType := models.ProductType(productTypeDto)
+func (s *ProductService) CreateProduct(ctx context.Context, pvzIdDto openapi_types.UUID, productTypeJson generated.PostProductsJSONBodyType) (*generated.Product, error) {
+	productType, err := mapJsonToProductType(productTypeJson)
+	if err != nil {
+		return nil, err
+	}
 
 	pvzId, err := services.ConvertOpenAPIUuidToPgType(pvzIdDto)
 	if err != nil {
@@ -40,7 +44,7 @@ func (s *ProductService) CreateProduct(ctx context.Context, pvzIdDto openapi_typ
 		return nil, err
 	}
 
-	product := &models.Product{Id: id, AddingTime: time.Now(), ProductType: productType}
+	product := &products2.Product{Id: id, AddingTime: time.Now(), ProductType: productType}
 	receptionId, err := s.driver.CreateProduct(ctx, product, pvzId)
 	if err != nil {
 		return nil, err
@@ -60,7 +64,7 @@ func (s *ProductService) CreateProduct(ctx context.Context, pvzIdDto openapi_typ
 		Id:          &idDto,
 		DateTime:    &product.AddingTime,
 		ReceptionId: receptionIdDto,
-		Type:        productTypeDto,
+		Type:        generated.ProductType(productType),
 	}
 
 	return productDto, nil
@@ -78,4 +82,18 @@ func (s *ProductService) DeleteLastProduct(ctx context.Context, pvzIdDto openapi
 	}
 
 	return s.driver.DeleteLastProduct(ctx, pvzId)
+}
+
+func mapJsonToProductType(productType generated.PostProductsJSONBodyType) (products2.ProductType, error) {
+	switch productType {
+	case "электроника":
+		return products2.Electronics, nil
+	case "обувь":
+		return products2.Shoes, nil
+	case "одежда":
+		return products2.Clothes, nil
+	default:
+		log.Error().Msg(custom_errors.ErrProductType.Message)
+		return "", custom_errors.ErrProductType
+	}
 }

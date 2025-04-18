@@ -15,6 +15,11 @@ CREATE TYPE product_type AS enum (
     'shoes'
     );
 
+CREATE TYPE user_role AS enum (
+    'employee',
+    'moderator'
+    );
+
 CREATE TABLE IF NOT EXISTS pvz
 (
     id                UUID PRIMARY KEY,
@@ -40,6 +45,15 @@ CREATE TABLE IF NOT EXISTS products
     FOREIGN KEY (reception_id) REFERENCES receptions (id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS  users
+(
+    id UUID PRIMARY KEY,
+    email VARCHAR(254) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    role user_role NOT NULL
+);
+
 CREATE INDEX idx_receptions_pvz_id_and_status ON receptions (pvz_id, status);
 CREATE INDEX idx_products_reception_id_and_adding_time ON products (reception_id, adding_time);
 CREATE INDEX idx_receptions_pvz_id_and_reception_time ON receptions (pvz_id, reception_time);
+CREATE INDEX idx_users_email ON users (email);

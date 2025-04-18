@@ -5,7 +5,7 @@ services:
     image: postgres:15
     container_name: pvz_db
     environment:
-      POSTGRES_USER: pvz_user
+      POSTGRES_USER: pvz_model
       POSTGRES_PASSWORD: pvz_password
       POSTGRES_DB: pvz_database
     volumes:

@@ -1,13 +1,13 @@
-package products
+package product_driver
 
 import (
 	"context"
-	"github.com/jackc/pgx/pgtype"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog/log"
 	"pvz/internal/drivers"
-	"pvz/internal/models"
 	"pvz/internal/models/custom_errors"
+	"pvz/internal/models/product_model"
 )
 
 type ProductDriver struct {
@@ -18,7 +18,7 @@ func NewProductDriver(rwdb *pgxpool.Pool) *ProductDriver {
 	return &ProductDriver{rwdb: rwdb}
 }
 
-func (d *ProductDriver) CreateProduct(ctx context.Context, product *models.Product, pvzId pgtype.UUID) (*pgtype.UUID, error) {
+func (d *ProductDriver) CreateProduct(ctx context.Context, product *product_model.Product, pvzId pgtype.UUID) (*pgtype.UUID, error) {
 	tx, err := d.rwdb.Begin(ctx)
 	if err != nil {
 		log.Error().Err(err).Msg(custom_errors.ErrBeginTransaction.Message)
