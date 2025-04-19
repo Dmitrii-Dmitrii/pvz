@@ -31,20 +31,6 @@ func (d *ReceptionDriver) CreateReception(ctx context.Context, reception *recept
 	return nil
 }
 
-func (d *ReceptionDriver) GetReception(ctx context.Context, id pgtype.UUID) (*reception_model.Reception, error) {
-	var receptionTime time.Time
-	var pvzId pgtype.UUID
-	var status reception_model.ReceptionStatus
-	err := d.rwdb.QueryRow(ctx, drivers.QueryGetReception, id).Scan(&receptionTime, &pvzId, &status)
-	if err != nil {
-		log.Error().Err(err).Msg(custom_errors.ErrGetReception.Message)
-		return nil, custom_errors.ErrGetReception
-	}
-
-	reception := &reception_model.Reception{Id: id, PvzId: pvzId, ReceptionTime: receptionTime, Status: status}
-	return reception, nil
-}
-
 func (d *ReceptionDriver) CloseReception(ctx context.Context, pvzId pgtype.UUID) (*reception_model.Reception, error) {
 	tx, err := d.rwdb.Begin(ctx)
 	if err != nil {
@@ -70,7 +56,7 @@ func (d *ReceptionDriver) CloseReception(ctx context.Context, pvzId pgtype.UUID)
 		return nil, custom_errors.ErrCommitTransaction
 	}
 
-	reception, err := d.GetReception(ctx, receptionId)
+	reception, err := d.getReception(ctx, receptionId)
 	if err != nil {
 		return nil, err
 	}
@@ -91,4 +77,18 @@ func (d *ReceptionDriver) GetLastReceptionStatus(ctx context.Context, pvzId pgty
 	}
 
 	return &status, nil
+}
+
+func (d *ReceptionDriver) getReception(ctx context.Context, id pgtype.UUID) (*reception_model.Reception, error) {
+	var receptionTime time.Time
+	var pvzId pgtype.UUID
+	var status reception_model.ReceptionStatus
+	err := d.rwdb.QueryRow(ctx, drivers.QueryGetReception, id).Scan(&receptionTime, &pvzId, &status)
+	if err != nil {
+		log.Error().Err(err).Msg(custom_errors.ErrGetReception.Message)
+		return nil, custom_errors.ErrGetReception
+	}
+
+	reception := &reception_model.Reception{Id: id, PvzId: pvzId, ReceptionTime: receptionTime, Status: status}
+	return reception, nil
 }

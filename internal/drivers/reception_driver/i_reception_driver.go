@@ -8,7 +8,6 @@ import (
 
 type IReceptionDriver interface {
 	CreateReception(ctx context.Context, reception *reception_model.Reception) error
-	GetReception(ctx context.Context, id pgtype.UUID) (*reception_model.Reception, error)
 	CloseReception(ctx context.Context, pvzId pgtype.UUID) (*reception_model.Reception, error)
 	GetLastReceptionStatus(ctx context.Context, pvzId pgtype.UUID) (*reception_model.ReceptionStatus, error)
 }

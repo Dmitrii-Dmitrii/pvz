@@ -69,14 +69,39 @@ const (
 	INSERT INTO products (id, adding_time, product_type, reception_id) 
 	VALUES ($1, $2, $3, $4)
 `
+	queryCreateUser = `
+	INSERT INTO users (id, email, password_hash, role)
+	VALUES ($1, $2, $3, $4)
+`
 	queryGetPvz = `
-	SELECT registration_date, city 
+	SELECT 
+	    registration_date,
+	    city 
 	FROM pvz 
 	WHERE id = $1
 `
 	queryGetReception = `
-	SELECT reception_time, pvz_id, status
+	SELECT 
+	    reception_time, 
+	    pvz_id,
+	    status
 	FROM receptions 
+	WHERE id = $1
+`
+	queryGetProduct = `
+	SELECT 
+	    adding_time, 
+	    product_type,
+	    reception_id
+	FROM products
+	WHERE id = $1
+`
+	queryGetUser = `
+	SELECT 
+		email, 
+		password_hash,
+		role 
+	FROM users 
 	WHERE id = $1
 `
 )

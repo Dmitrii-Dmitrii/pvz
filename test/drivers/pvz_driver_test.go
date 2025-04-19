@@ -40,26 +40,22 @@ func TestCreatePvz(t *testing.T) {
 	err = pool.QueryRow(ctx, queryGetPvz, id).Scan(&dbDate, &dbCity)
 
 	require.NoError(t, err)
-	assert.Equal(t, registrationDate.Truncate(time.Microsecond), dbDate.Truncate(time.Microsecond))
+	assert.Equal(t, registrationDate, dbDate)
 	assert.Equal(t, string(city), dbCity)
 }
 
 func TestGetPvzById(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration test in short mode")
-	}
-
 	pool, cleanup := setupPostgresContainer(t)
 	defer cleanup()
 
 	driver := pvz_driver.NewPvzDriver(pool)
 	ctx := context.Background()
 
-	pvzIds, err := insertTestData(ctx, pool)
+	pvzIds, _, _, err := createTestData(ctx, pool)
 	require.NoError(t, err)
 	require.NotEmpty(t, pvzIds)
 
-	t.Run("Existing PVZ", func(t *testing.T) {
+	t.Run("Existing pvz", func(t *testing.T) {
 		result, err := driver.GetPvzById(ctx, pvzIds[0])
 
 		require.NoError(t, err)
@@ -69,7 +65,7 @@ func TestGetPvzById(t *testing.T) {
 		assert.True(t, result.City == pvz_model.Moscow || result.City == pvz_model.SPb)
 	})
 
-	t.Run("Non-existent PVZ", func(t *testing.T) {
+	t.Run("Non-existent pvz", func(t *testing.T) {
 		nonExistentId := pgtype.UUID{Bytes: uuid.New(), Valid: true}
 		result, err := driver.GetPvzById(ctx, nonExistentId)
 
@@ -86,10 +82,10 @@ func TestGetPvz(t *testing.T) {
 	driver := pvz_driver.NewPvzDriver(pool)
 	ctx := context.Background()
 
-	_, err := insertTestData(ctx, pool)
+	_, _, _, err := createTestData(ctx, pool)
 	require.NoError(t, err)
 
-	t.Run("All PVZs", func(t *testing.T) {
+	t.Run("All pvz", func(t *testing.T) {
 		limit := uint32(10)
 		offset := uint32(0)
 
@@ -110,7 +106,7 @@ func TestGetPvz(t *testing.T) {
 		}
 	})
 
-	t.Run("PVZs with time filter", func(t *testing.T) {
+	t.Run("Pvz with time filter", func(t *testing.T) {
 		limit := uint32(10)
 		offset := uint32(0)
 		startTime := time.Now().Add(-36 * time.Hour)
@@ -147,7 +143,7 @@ func TestGetPvz(t *testing.T) {
 
 			if ok1 && ok2 && firstPvzMap["id"] != nil && secondPvzMap["id"] != nil {
 				assert.NotEqual(t, firstPvzMap["id"], secondPvzMap["id"],
-					"Different pages should return different PVZs")
+					"Different pages should return different pvz")
 			}
 		}
 	})

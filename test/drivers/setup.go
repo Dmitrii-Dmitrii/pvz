@@ -83,7 +83,7 @@ func setupSchema(ctx context.Context, pool *pgxpool.Pool) error {
 	return err
 }
 
-func insertTestData(ctx context.Context, pool *pgxpool.Pool) ([]pgtype.UUID, error) {
+func createTestData(ctx context.Context, pool *pgxpool.Pool) ([]pgtype.UUID, []pgtype.UUID, []pgtype.UUID, error) {
 	pvzIds := make([]pgtype.UUID, 2)
 	for i := 0; i < 2; i++ {
 		idBytes := uuid.New()
@@ -98,7 +98,7 @@ func insertTestData(ctx context.Context, pool *pgxpool.Pool) ([]pgtype.UUID, err
 		_, err := pool.Exec(ctx, queryCreatePvz, id, time.Now().Add(-time.Hour*24*time.Duration(i+1)), city)
 
 		if err != nil {
-			return nil, fmt.Errorf("failed to insert pvz: %w", err)
+			return nil, nil, nil, fmt.Errorf("failed to create pvz: %w", err)
 		}
 	}
 
@@ -117,7 +117,7 @@ func insertTestData(ctx context.Context, pool *pgxpool.Pool) ([]pgtype.UUID, err
 		_, err := pool.Exec(ctx, queryCreateReception, id, time.Now().Add(-time.Hour*12*time.Duration(i+1)), pvzIds[pvzIndex], status)
 
 		if err != nil {
-			return nil, fmt.Errorf("failed to insert reception: %w", err)
+			return nil, nil, nil, fmt.Errorf("failed to create reception: %w", err)
 		}
 	}
 
@@ -134,9 +134,28 @@ func insertTestData(ctx context.Context, pool *pgxpool.Pool) ([]pgtype.UUID, err
 		_, err := pool.Exec(ctx, queryCreateProduct, id, time.Now().Add(-time.Hour*12*time.Duration(i+1)), productType, receptionIds[receptionIndex])
 
 		if err != nil {
-			return nil, fmt.Errorf("failed to insert product: %w", err)
+			return nil, nil, nil, fmt.Errorf("failed to create product: %w", err)
 		}
 	}
 
-	return pvzIds, nil
+	userIds := make([]pgtype.UUID, 2)
+	for i := 0; i < 2; i++ {
+		idBytes := uuid.New()
+		id := pgtype.UUID{Bytes: idBytes, Valid: true}
+		userIds[i] = id
+
+		role := "employee"
+		if i == 1 {
+			role = "moderator"
+		}
+
+		email := "dummy." + role + "@example.com"
+
+		_, err := pool.Exec(ctx, queryCreateUser, id, email, "", role)
+		if err != nil {
+			return nil, nil, nil, fmt.Errorf("failed to create user: %w", err)
+		}
+	}
+
+	return pvzIds, receptionIds, userIds, nil
 }
