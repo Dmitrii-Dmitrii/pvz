@@ -55,7 +55,7 @@ func (s *PvzService) CreatePvz(ctx context.Context, pvzDto generated.PVZ) (*gene
 
 	pvz = &pvz_model.Pvz{Id: id, RegistrationDate: registrationDate, City: city}
 
-	_, err = s.driver.CreatePvz(ctx, pvz)
+	err = s.driver.CreatePvz(ctx, pvz)
 	if err != nil {
 		return nil, err
 	}

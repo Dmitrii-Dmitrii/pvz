@@ -26,14 +26,14 @@ func NewPvzDriver(rwdb *pgxpool.Pool) *PvzDriver {
 	return &PvzDriver{rwdb: rwdb}
 }
 
-func (d *PvzDriver) CreatePvz(ctx context.Context, pvz *pvz_model.Pvz) (*pvz_model.Pvz, error) {
+func (d *PvzDriver) CreatePvz(ctx context.Context, pvz *pvz_model.Pvz) error {
 	_, err := d.rwdb.Exec(ctx, drivers.QueryCreatePvz, pvz.Id, pvz.RegistrationDate, pvz.City)
 	if err != nil {
 		log.Error().Err(err).Msg(custom_errors.ErrCreatePvz.Message)
-		return nil, custom_errors.ErrCreatePvz
+		return custom_errors.ErrCreatePvz
 	}
 
-	return pvz, nil
+	return nil
 }
 
 func (d *PvzDriver) GetPvz(ctx context.Context, limit, offset uint32, startInterval, endInterval *time.Time) ([]map[string]interface{}, error) {
