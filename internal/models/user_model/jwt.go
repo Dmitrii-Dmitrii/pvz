@@ -1,12 +1,13 @@
 package user_model
 
 import (
+	"errors"
 	"github.com/golang-jwt/jwt/v5"
 	"os"
 	"time"
 )
 
-type JWTClaims struct {
+type JwtClaims struct {
 	UserId string `json:"user_id"`
 	Email  string `json:"email"`
 	Role   string `json:"role"`
@@ -15,10 +16,29 @@ type JWTClaims struct {
 
 const JwtExpiry = time.Hour * 24
 
-func GetJWTSecret() []byte {
+func GetJwtSecret() []byte {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
 		panic("JWT_SECRET environment variable not set!")
 	}
 	return []byte(secret)
+}
+
+func ValidateToken(tokenString string) (*JwtClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &JwtClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
+		return GetJwtSecret(), nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if claims, ok := token.Claims.(*JwtClaims); ok && token.Valid {
+		return claims, nil
+	}
+
+	return nil, errors.New("invalid token")
 }

@@ -82,7 +82,6 @@ func (d *ReceptionDriver) GetLastReceptionStatus(ctx context.Context, pvzId pgty
 	var status reception_model.ReceptionStatus
 	err := d.rwdb.QueryRow(ctx, drivers.QueryGetLastReceptionStatus, pvzId).Scan(&status)
 	if errors.Is(err, pgx.ErrNoRows) {
-		log.Error().Err(err).Msg(custom_errors.ErrNoReception.Message)
 		return nil, custom_errors.ErrNoReception
 	}
 

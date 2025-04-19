@@ -31,7 +31,7 @@ func (d *ProductDriver) CreateProduct(ctx context.Context, product *product_mode
 		return nil, err
 	}
 
-	_, err = tx.Exec(ctx, drivers.QueryCreateProduct, product.Id, product.ProductType, product.AddingTime, receptionId)
+	_, err = tx.Exec(ctx, drivers.QueryCreateProduct, product.Id, product.AddingTime, product.ProductType, receptionId)
 	if err != nil {
 		log.Error().Err(err).Msg(custom_errors.ErrCreateProduct.Message)
 		return nil, custom_errors.ErrCreateProduct

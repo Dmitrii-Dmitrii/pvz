@@ -21,7 +21,7 @@ type Handler struct {
 	userService      user_service.IUserService
 }
 
-func NewHandler(pvzService pvz_service.IPvzService, receptionService reception_service.IReceptionService, productService product_service.IProductService, userService user_service.IUserService) *Handler {
+func NewHttpHandler(pvzService pvz_service.IPvzService, receptionService reception_service.IReceptionService, productService product_service.IProductService, userService user_service.IUserService) *Handler {
 	return &Handler{
 		pvzService:       pvzService,
 		receptionService: receptionService,
@@ -51,7 +51,7 @@ func (h *Handler) PostDummyLogin(c *gin.Context) {
 	}
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, generated.Error{Message: "Dummy login error: " + userErr.Error()})
+		c.JSON(http.StatusInternalServerError, generated.Error{Message: "Dummy login error: " + err.Error()})
 		return
 	}
 
@@ -78,7 +78,7 @@ func (h *Handler) PostLogin(c *gin.Context) {
 	token, err := h.userService.Login(c.Request.Context(), req.Email, req.Password)
 	var userErr *custom_errors.UserError
 	if errors.As(err, &userErr) {
-		c.JSON(http.StatusBadRequest, generated.Error{Message: "Invalid request to login:" + userErr.Error()})
+		c.JSON(http.StatusUnauthorized, generated.Error{Message: "Invalid request to login:" + userErr.Error()})
 		return
 	}
 
@@ -110,6 +110,7 @@ func (h *Handler) PostProducts(c *gin.Context) {
 	var userErr *custom_errors.UserError
 	if errors.As(err, &userErr) {
 		c.JSON(http.StatusBadRequest, generated.Error{Message: "Invalid request format to create product: " + userErr.Error()})
+		return
 	}
 
 	if err != nil {
@@ -145,7 +146,9 @@ func (h *Handler) PostPvz(c *gin.Context) {
 	var userErr *custom_errors.UserError
 	if errors.As(err, &userErr) {
 		c.JSON(http.StatusBadRequest, generated.Error{Message: "Invalid request format to create pvz: " + userErr.Error()})
+		return
 	}
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, generated.Error{Message: "Create pvz error: " + err.Error()})
 		return
@@ -183,7 +186,7 @@ func (h *Handler) PostPvzPvzIdDeleteLastProduct(c *gin.Context, pvzId openapi_ty
 		return
 	}
 
-	c.JSON(http.StatusOK, nil)
+	c.JSON(http.StatusOK, gin.H{})
 }
 
 func (h *Handler) PostReceptions(c *gin.Context) {

@@ -1,4 +1,4 @@
-package pvzs
+package pvz_model
 
 import (
 	"github.com/jackc/pgx/v5/pgtype"

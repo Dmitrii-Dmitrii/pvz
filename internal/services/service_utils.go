@@ -36,8 +36,8 @@ func ConvertOpenAPIUuidToPgType(openapiUuid openapi_types.UUID) (pgtype.UUID, er
 
 func ConvertPgUuidToOpenAPI(pgUuid pgtype.UUID) (openapi_types.UUID, error) {
 	if !pgUuid.Valid {
-		log.Error().Msg(custom_errors.ErrUuidNotValid.Message)
-		return openapi_types.UUID{}, custom_errors.ErrUuidNotValid
+		log.Error().Msg(custom_errors.ErrInvalidUuid.Message)
+		return openapi_types.UUID{}, custom_errors.ErrInvalidUuid
 	}
 
 	stdUuid, err := uuid.FromBytes(pgUuid.Bytes[:])

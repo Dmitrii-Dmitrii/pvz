@@ -1,7 +1,7 @@
 CREATE TYPE city AS enum (
-    'moscow',
-    'spb',
-    'kazan'
+    'Москва',
+    'Санкт-Петербург',
+    'Казань'
     );
 
 CREATE TYPE reception_status AS enum (
@@ -10,9 +10,9 @@ CREATE TYPE reception_status AS enum (
     );
 
 CREATE TYPE product_type AS enum (
-    'electronics',
-    'clothes',
-    'shoes'
+    'электроника',
+    'одежда',
+    'обувь'
     );
 
 CREATE TYPE user_role AS enum (

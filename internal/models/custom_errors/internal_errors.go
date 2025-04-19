@@ -17,15 +17,21 @@ func (e *InternalError) Error() string {
 }
 
 var (
+	ErrStartServer    = &InternalError{Message: "failed to start server"}
+	ErrShutdownServer = &InternalError{Message: "failed to shutdown server"}
+	ErrEnvLoading     = &InternalError{Message: "failed to load .env file loading"}
+
+	ErrCreatePool        = &InternalError{Message: "failed to create connection pool"}
 	ErrBeginTransaction  = &InternalError{Message: "failed to begin transaction"}
 	ErrCommitTransaction = &InternalError{Message: "failed to commit transaction"}
 	ErrScanRow           = &InternalError{Message: "failed to scan row"}
 
-	ErrUuidNotValid         = &InternalError{Message: "invalid UUID"}
+	ErrInvalidUuid          = &InternalError{Message: "invalid UUID"}
 	ErrConvertUuidToOpenapi = &InternalError{Message: "failed to convert uuid to openapi types"}
 
-	ErrCreatePvz = &InternalError{Message: "failed to create pvz"}
-	ErrGetPvz    = &InternalError{Message: "failed to get pvz"}
+	ErrCreatePvz   = &InternalError{Message: "failed to create pvz"}
+	ErrGetPvz      = &InternalError{Message: "failed to get pvz"}
+	ErrPvzNotFound = &InternalError{Message: "pvz not found"}
 
 	ErrCreateReception        = &InternalError{Message: "failed to create reception"}
 	ErrGetReceptionInProgress = &InternalError{Message: "failed to get reception in progress"}
@@ -38,5 +44,7 @@ var (
 
 	ErrCreateUser       = &InternalError{Message: "failed to create user"}
 	ErrGetUserByEmail   = &InternalError{Message: "failed to get user by email"}
+	ErrGetUserById      = &InternalError{Message: "failed to get user by id"}
 	ErrGenerateJWTToken = &InternalError{Message: "failed to generate jwt token"}
+	ErrHashPassword     = &InternalError{Message: "failed to hash password"}
 )

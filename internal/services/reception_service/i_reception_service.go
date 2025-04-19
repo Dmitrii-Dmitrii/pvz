@@ -10,5 +10,5 @@ import (
 type IReceptionService interface {
 	CreateReception(ctx context.Context, pvzIdDto openapi_types.UUID) (*generated.Reception, error)
 	CloseReception(ctx context.Context, pvzIdDto openapi_types.UUID) (*generated.Reception, error)
-	CheckLastReceptionStatus(ctx context.Context, pvzId pgtype.UUID) error
+	IsLastReceptionStatusClose(ctx context.Context, pvzId pgtype.UUID) (bool, error)
 }
