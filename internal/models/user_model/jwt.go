@@ -1,9 +1,9 @@
 package user_model
 
 import (
-	"errors"
 	"github.com/golang-jwt/jwt/v5"
 	"os"
+	"pvz/internal/models/custom_errors"
 	"time"
 )
 
@@ -27,7 +27,7 @@ func GetJwtSecret() []byte {
 func ValidateToken(tokenString string) (*JwtClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &JwtClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("unexpected signing method")
+			return nil, custom_errors.ErrSigningMethod
 		}
 		return GetJwtSecret(), nil
 	})
@@ -40,5 +40,5 @@ func ValidateToken(tokenString string) (*JwtClaims, error) {
 		return claims, nil
 	}
 
-	return nil, errors.New("invalid token")
+	return nil, custom_errors.ErrInvalidToken
 }

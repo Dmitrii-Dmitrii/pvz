@@ -42,9 +42,12 @@ var (
 	ErrCreateProduct = &InternalError{Message: "failed to create product"}
 	ErrDeleteProduct = &InternalError{Message: "failed to delete product"}
 
-	ErrCreateUser       = &InternalError{Message: "failed to create user"}
-	ErrGetUserByEmail   = &InternalError{Message: "failed to get user by email"}
-	ErrGetUserById      = &InternalError{Message: "failed to get user by id"}
+	ErrCreateUser     = &InternalError{Message: "failed to create user"}
+	ErrGetUserByEmail = &InternalError{Message: "failed to get user by email"}
+	ErrGetUserById    = &InternalError{Message: "failed to get user by id"}
+	ErrHashPassword   = &InternalError{Message: "failed to hash password"}
+
 	ErrGenerateJWTToken = &InternalError{Message: "failed to generate jwt token"}
-	ErrHashPassword     = &InternalError{Message: "failed to hash password"}
+	ErrSigningMethod    = &InternalError{Message: "unexpected signing method"}
+	ErrInvalidToken     = &InternalError{Message: "invalid token"}
 )
