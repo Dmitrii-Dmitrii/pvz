@@ -60,7 +60,7 @@ func main() {
 
 	authMiddleware := middlewares.NewAuthMiddleware(userService)
 
-	apiGroup := router.Group("/api/v1")
+	apiGroup := router.Group("/")
 
 	generated.RegisterHandlersWithOptions(apiGroup, httpHandler, generated.GinServerOptions{
 		Middlewares: []generated.MiddlewareFunc{
