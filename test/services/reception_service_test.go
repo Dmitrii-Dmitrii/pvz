@@ -50,9 +50,6 @@ func TestCreateReception(t *testing.T) {
 
 		pvzIdDto := uuid.New()
 
-		pvzId := pgtype.UUID{}
-		_ = pvzId.Scan(pvzIdDto)
-
 		status := reception_model.Close
 		mockDriver.On("GetLastReceptionStatus", ctx, mock.AnythingOfType("pgtype.UUID")).Return(&status, nil)
 		mockDriver.On("CreateReception", ctx, mock.AnythingOfType("*reception_model.Reception")).Return(nil)
@@ -72,9 +69,6 @@ func TestCreateReception(t *testing.T) {
 
 		pvzIdDto := uuid.New()
 
-		pvzId := pgtype.UUID{}
-		_ = pvzId.Scan(pvzIdDto)
-
 		mockDriver.On("GetLastReceptionStatus", ctx, mock.AnythingOfType("pgtype.UUID")).Return(nil, custom_errors.ErrNoReception)
 		mockDriver.On("CreateReception", ctx, mock.AnythingOfType("*reception_model.Reception")).Return(nil)
 
@@ -92,9 +86,6 @@ func TestCreateReception(t *testing.T) {
 		service := reception_service.NewReceptionService(mockDriver)
 
 		pvzIdDto := uuid.New()
-
-		pvzId := pgtype.UUID{}
-		_ = pvzId.Scan(pvzIdDto)
 
 		status := reception_model.InProgress
 		mockDriver.On("GetLastReceptionStatus", ctx, mock.AnythingOfType("pgtype.UUID")).Return(&status, nil)
@@ -114,9 +105,6 @@ func TestCreateReception(t *testing.T) {
 
 		pvzIdDto := uuid.New()
 
-		pvzId := pgtype.UUID{}
-		_ = pvzId.Scan(pvzIdDto)
-
 		expectedError := errors.New("database error")
 		mockDriver.On("GetLastReceptionStatus", ctx, mock.AnythingOfType("pgtype.UUID")).Return(nil, expectedError)
 
@@ -134,9 +122,6 @@ func TestCreateReception(t *testing.T) {
 		service := reception_service.NewReceptionService(mockDriver)
 
 		pvzIdDto := uuid.New()
-
-		pvzId := pgtype.UUID{}
-		_ = pvzId.Scan(pvzIdDto)
 
 		status := reception_model.Close
 		expectedError := errors.New("database error")
@@ -229,9 +214,6 @@ func TestCloseReception(t *testing.T) {
 
 		pvzIdDto := uuid.New()
 
-		pvzId := pgtype.UUID{}
-		_ = pvzId.Scan(pvzIdDto)
-
 		expectedError := errors.New("database error")
 		mockDriver.On("GetLastReceptionStatus", ctx, mock.AnythingOfType("pgtype.UUID")).Return(nil, expectedError)
 
@@ -249,9 +231,6 @@ func TestCloseReception(t *testing.T) {
 		service := reception_service.NewReceptionService(mockDriver)
 
 		pvzIdDto := uuid.New()
-
-		pvzId := pgtype.UUID{}
-		_ = pvzId.Scan(pvzIdDto)
 
 		status := reception_model.InProgress
 		expectedError := errors.New("database error")
@@ -275,8 +254,7 @@ func TestGetLastReceptionStatus(t *testing.T) {
 		mockDriver := new(MockReceptionDriver)
 		service := reception_service.NewReceptionService(mockDriver)
 
-		pvzId := pgtype.UUID{}
-		_ = pvzId.Scan(uuid.New())
+		pvzId := pgtype.UUID{Bytes: uuid.New(), Valid: true}
 
 		status := reception_model.Close
 		mockDriver.On("GetLastReceptionStatus", ctx, mock.AnythingOfType("pgtype.UUID")).Return(&status, nil)
@@ -292,8 +270,7 @@ func TestGetLastReceptionStatus(t *testing.T) {
 		mockDriver := new(MockReceptionDriver)
 		service := reception_service.NewReceptionService(mockDriver)
 
-		pvzId := pgtype.UUID{}
-		_ = pvzId.Scan(uuid.New())
+		pvzId := pgtype.UUID{Bytes: uuid.New(), Valid: true}
 
 		status := reception_model.InProgress
 		mockDriver.On("GetLastReceptionStatus", ctx, mock.AnythingOfType("pgtype.UUID")).Return(&status, nil)
@@ -309,8 +286,7 @@ func TestGetLastReceptionStatus(t *testing.T) {
 		mockDriver := new(MockReceptionDriver)
 		service := reception_service.NewReceptionService(mockDriver)
 
-		pvzId := pgtype.UUID{}
-		_ = pvzId.Scan(uuid.New())
+		pvzId := pgtype.UUID{Bytes: uuid.New(), Valid: true}
 
 		mockDriver.On("GetLastReceptionStatus", ctx, mock.AnythingOfType("pgtype.UUID")).Return(nil, custom_errors.ErrNoReception)
 
@@ -326,8 +302,7 @@ func TestGetLastReceptionStatus(t *testing.T) {
 		mockDriver := new(MockReceptionDriver)
 		service := reception_service.NewReceptionService(mockDriver)
 
-		pvzId := pgtype.UUID{}
-		_ = pvzId.Scan(uuid.New())
+		pvzId := pgtype.UUID{Bytes: uuid.New(), Valid: true}
 
 		expectedError := errors.New("database error")
 		mockDriver.On("GetLastReceptionStatus", ctx, mock.AnythingOfType("pgtype.UUID")).Return(nil, expectedError)
