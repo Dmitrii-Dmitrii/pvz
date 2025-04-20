@@ -28,12 +28,12 @@ func (s *ReceptionService) CreateReception(ctx context.Context, pvzIdDto openapi
 		return nil, err
 	}
 
-	isClosed, err := s.IsLastReceptionStatusClose(ctx, pvzId)
+	status, err := s.GetLastReceptionStatus(ctx, pvzId)
 	if err != nil && !errors.Is(err, custom_errors.ErrNoReception) {
 		return nil, err
 	}
 
-	if !isClosed {
+	if status != nil && *status == reception_model.InProgress {
 		log.Warn().Msg(custom_errors.ErrInProgressReception.Message)
 		return nil, custom_errors.ErrInProgressReception
 	}
@@ -67,12 +67,12 @@ func (s *ReceptionService) CloseReception(ctx context.Context, pvzIdDto openapi_
 		return nil, err
 	}
 
-	isClosed, err := s.IsLastReceptionStatusClose(ctx, pvzId)
-	if err != nil && errors.Is(err, custom_errors.ErrNoReception) {
+	status, err := s.GetLastReceptionStatus(ctx, pvzId)
+	if err != nil {
 		return nil, err
 	}
 
-	if isClosed {
+	if *status == reception_model.Close {
 		log.Warn().Msg(custom_errors.ErrNoOpenReception.Message)
 		return nil, custom_errors.ErrNoOpenReception
 	}
@@ -97,19 +97,11 @@ func (s *ReceptionService) CloseReception(ctx context.Context, pvzIdDto openapi_
 	return receptionDto, nil
 }
 
-func (s *ReceptionService) IsLastReceptionStatusClose(ctx context.Context, pvzId pgtype.UUID) (bool, error) {
+func (s *ReceptionService) GetLastReceptionStatus(ctx context.Context, pvzId pgtype.UUID) (*reception_model.ReceptionStatus, error) {
 	status, err := s.driver.GetLastReceptionStatus(ctx, pvzId)
-	if errors.Is(err, custom_errors.ErrNoReception) {
-		return true, nil
-	}
-
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	if *status != reception_model.Close {
-		return false, nil
-	}
-
-	return true, nil
+	return status, nil
 }

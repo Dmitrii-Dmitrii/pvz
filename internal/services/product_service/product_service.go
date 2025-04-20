@@ -8,6 +8,7 @@ import (
 	"pvz/internal/generated"
 	"pvz/internal/models/custom_errors"
 	"pvz/internal/models/product_model"
+	"pvz/internal/models/reception_model"
 	"pvz/internal/services"
 	"pvz/internal/services/reception_service"
 	"time"
@@ -33,13 +34,13 @@ func (s *ProductService) CreateProduct(ctx context.Context, pvzIdDto openapi_typ
 		return nil, err
 	}
 
-	isClosed, err := s.receptionService.IsLastReceptionStatusClose(ctx, pvzId)
+	status, err := s.receptionService.GetLastReceptionStatus(ctx, pvzId)
 	if err != nil {
 		return nil, err
 	}
 
-	if isClosed {
-		log.Error().Msg(custom_errors.ErrNoOpenReception.Message)
+	if *status == reception_model.Close {
+		log.Warn().Msg(custom_errors.ErrNoOpenReception.Message)
 		return nil, custom_errors.ErrNoOpenReception
 	}
 
@@ -77,13 +78,13 @@ func (s *ProductService) DeleteLastProduct(ctx context.Context, pvzIdDto openapi
 		return err
 	}
 
-	isClosed, err := s.receptionService.IsLastReceptionStatusClose(ctx, pvzId)
+	status, err := s.receptionService.GetLastReceptionStatus(ctx, pvzId)
 	if err != nil {
 		return err
 	}
 
-	if isClosed {
-		log.Error().Msg(custom_errors.ErrNoOpenReception.Message)
+	if *status == reception_model.Close {
+		log.Warn().Msg(custom_errors.ErrNoOpenReception.Message)
 		return custom_errors.ErrNoOpenReception
 	}
 
