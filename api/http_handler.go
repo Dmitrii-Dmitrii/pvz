@@ -83,7 +83,8 @@ func (h *Handler) PostLogin(c *gin.Context) {
 	}
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, generated.Error{Message: "Login error" + err.Error()})
+		c.JSON(http.StatusInternalServerError, generated.Error{Message: "Login error: " + err.Error()})
+		return
 	}
 
 	c.SetCookie(
@@ -114,7 +115,7 @@ func (h *Handler) PostProducts(c *gin.Context) {
 	}
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, generated.Error{Message: "Create product error" + err.Error()})
+		c.JSON(http.StatusInternalServerError, generated.Error{Message: "Create product error: " + err.Error()})
 		return
 	}
 
@@ -126,7 +127,9 @@ func (h *Handler) GetPvz(c *gin.Context, params generated.GetPvzParams) {
 	var userErr *custom_errors.UserError
 	if errors.As(err, &userErr) {
 		c.JSON(http.StatusBadRequest, generated.Error{Message: "Invalid request format to get pvz: " + err.Error()})
+		return
 	}
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, generated.Error{Message: "Get pvz error: " + err.Error()})
 		return
@@ -228,6 +231,11 @@ func (h *Handler) PostRegister(c *gin.Context) {
 	var userErr *custom_errors.UserError
 	if errors.As(err, &userErr) {
 		c.JSON(http.StatusBadRequest, generated.Error{Message: "Invalid request format to register: " + userErr.Error()})
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, generated.Error{Message: "Register error: " + err.Error()})
 		return
 	}
 

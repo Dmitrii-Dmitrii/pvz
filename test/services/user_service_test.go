@@ -145,6 +145,7 @@ func TestRegister(t *testing.T) {
 		password := "password123"
 		role := generated.UserRoleEmployee
 
+		mockDriver.On("GetUserByEmail", ctx, string(email)).Return(nil, custom_errors.ErrUserNotFound)
 		mockDriver.On("CreateUser", ctx, mock.AnythingOfType("*user_model.User")).Return(nil)
 
 		userDto, token, err := service.Register(ctx, email, password, role)
@@ -190,6 +191,25 @@ func TestRegister(t *testing.T) {
 		mockDriver.AssertNotCalled(t, "CreateUser")
 	})
 
+	t.Run("Register user with existing email in db", func(t *testing.T) {
+		mockDriver := new(MockUserDriver)
+		service := user_service.NewUserService(mockDriver)
+
+		email := openapi_types.Email("test@example.com")
+		password := "password123"
+		invalidRole := generated.UserRoleEmployee
+
+		mockDriver.On("GetUserByEmail", ctx, string(email)).Return(nil, custom_errors.ErrExistingUser)
+
+		userDto, token, err := service.Register(ctx, email, password, invalidRole)
+
+		assert.Error(t, err)
+		assert.Nil(t, userDto)
+		assert.Empty(t, token)
+		assert.Equal(t, custom_errors.ErrExistingUser, err)
+		mockDriver.AssertNotCalled(t, "CreateUser")
+	})
+
 	t.Run("Register user with driver error", func(t *testing.T) {
 		mockDriver := new(MockUserDriver)
 		service := user_service.NewUserService(mockDriver)
@@ -199,6 +219,7 @@ func TestRegister(t *testing.T) {
 		role := generated.UserRoleEmployee
 		expectedErr := errors.New("database error")
 
+		mockDriver.On("GetUserByEmail", ctx, string(email)).Return(nil, custom_errors.ErrUserNotFound)
 		mockDriver.On("CreateUser", ctx, mock.AnythingOfType("*user_model.User")).Return(expectedErr)
 
 		userDto, token, err := service.Register(ctx, email, password, role)

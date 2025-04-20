@@ -29,4 +29,5 @@ var (
 	ErrUserNotFound        = &UserError{Message: "user not found"}
 	ErrPvzExists           = &UserError{Message: "pvz already exists"}
 	ErrInProgressReception = &UserError{Message: "in progress reception already exists"}
+	ErrExistingUser        = &UserError{Message: "user already exists"}
 )

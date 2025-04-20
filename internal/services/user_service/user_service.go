@@ -81,7 +81,18 @@ func (s *UserService) Register(ctx context.Context, emailDto openapi_types.Email
 	}
 
 	email := string(emailDto)
-	user := &user_model.User{
+
+	user, err := s.driver.GetUserByEmail(ctx, email)
+	if err != nil && !errors.Is(err, custom_errors.ErrUserNotFound) {
+		return nil, "", err
+	}
+
+	if user != nil {
+		log.Error().Msg(custom_errors.ErrExistingUser.Message)
+		return nil, "", custom_errors.ErrExistingUser
+	}
+
+	user = &user_model.User{
 		Id:           id,
 		Email:        email,
 		PasswordHash: passwordHash,
