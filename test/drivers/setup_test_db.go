@@ -14,11 +14,11 @@ import (
 	"time"
 )
 
-func setupPostgresContainer(t *testing.T) (*pgxpool.Pool, func()) {
+func SetupPostgresContainer(t *testing.T) (*pgxpool.Pool, func()) {
 	ctx := context.Background()
 
-	containerCtx, cancel := context.WithTimeout(ctx, time.Minute)
-	defer cancel()
+	//containerCtx, cancel := context.WithTimeout(ctx, time.Minute)
+	//defer cancel()
 
 	pgPort := "5432/tcp"
 	dbName := "testdb"
@@ -36,7 +36,7 @@ func setupPostgresContainer(t *testing.T) (*pgxpool.Pool, func()) {
 		WaitingFor: wait.ForLog("database system is ready to accept connections").WithStartupTimeout(2 * time.Minute),
 	}
 
-	postgresContainer, err := testcontainers.GenericContainer(containerCtx, testcontainers.GenericContainerRequest{
+	postgresContainer, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
 		Started:          true,
 	})

@@ -15,7 +15,7 @@ import (
 )
 
 func TestCreatePvz(t *testing.T) {
-	pool, cleanup := setupPostgresContainer(t)
+	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 
 	driver := pvz_driver.NewPvzDriver(pool)
@@ -45,7 +45,7 @@ func TestCreatePvz(t *testing.T) {
 }
 
 func TestGetPvzById(t *testing.T) {
-	pool, cleanup := setupPostgresContainer(t)
+	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 
 	driver := pvz_driver.NewPvzDriver(pool)
@@ -76,7 +76,7 @@ func TestGetPvzById(t *testing.T) {
 }
 
 func TestGetPvz(t *testing.T) {
-	pool, cleanup := setupPostgresContainer(t)
+	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 
 	driver := pvz_driver.NewPvzDriver(pool)

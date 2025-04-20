@@ -13,7 +13,7 @@ import (
 )
 
 func TestCreateUser(t *testing.T) {
-	pool, cleanup := setupPostgresContainer(t)
+	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 
 	driver := user_driver.NewUserDriver(pool)
@@ -46,7 +46,7 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestGetUserByEmail(t *testing.T) {
-	pool, cleanup := setupPostgresContainer(t)
+	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 
 	driver := user_driver.NewUserDriver(pool)
@@ -76,7 +76,7 @@ func TestGetUserByEmail(t *testing.T) {
 }
 
 func TestGetUserById(t *testing.T) {
-	pool, cleanup := setupPostgresContainer(t)
+	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 
 	driver := user_driver.NewUserDriver(pool)

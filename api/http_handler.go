@@ -14,15 +14,15 @@ import (
 	"pvz/internal/services/user_service"
 )
 
-type Handler struct {
+type HttpHandler struct {
 	pvzService       pvz_service.IPvzService
 	receptionService reception_service.IReceptionService
 	productService   product_service.IProductService
 	userService      user_service.IUserService
 }
 
-func NewHttpHandler(pvzService pvz_service.IPvzService, receptionService reception_service.IReceptionService, productService product_service.IProductService, userService user_service.IUserService) *Handler {
-	return &Handler{
+func NewHttpHandler(pvzService pvz_service.IPvzService, receptionService reception_service.IReceptionService, productService product_service.IProductService, userService user_service.IUserService) *HttpHandler {
+	return &HttpHandler{
 		pvzService:       pvzService,
 		receptionService: receptionService,
 		productService:   productService,
@@ -30,7 +30,7 @@ func NewHttpHandler(pvzService pvz_service.IPvzService, receptionService recepti
 	}
 }
 
-func (h *Handler) PostDummyLogin(c *gin.Context) {
+func (h *HttpHandler) PostDummyLogin(c *gin.Context) {
 	var req generated.PostDummyLoginJSONRequestBody
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, generated.Error{Message: "Invalid request to dummy login: " + err.Error()})
@@ -68,7 +68,7 @@ func (h *Handler) PostDummyLogin(c *gin.Context) {
 	c.JSON(http.StatusOK, token)
 }
 
-func (h *Handler) PostLogin(c *gin.Context) {
+func (h *HttpHandler) PostLogin(c *gin.Context) {
 	var req generated.PostLoginJSONRequestBody
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, generated.Error{Message: "Invalid request to login: " + err.Error()})
@@ -100,7 +100,7 @@ func (h *Handler) PostLogin(c *gin.Context) {
 	c.JSON(http.StatusOK, token)
 }
 
-func (h *Handler) PostProducts(c *gin.Context) {
+func (h *HttpHandler) PostProducts(c *gin.Context) {
 	var productReq generated.PostProductsJSONRequestBody
 	if err := c.ShouldBindJSON(&productReq); err != nil {
 		c.JSON(http.StatusBadRequest, generated.Error{Message: "Invalid request format to create product: " + err.Error()})
@@ -122,7 +122,7 @@ func (h *Handler) PostProducts(c *gin.Context) {
 	c.JSON(http.StatusCreated, productResp)
 }
 
-func (h *Handler) GetPvz(c *gin.Context, params generated.GetPvzParams) {
+func (h *HttpHandler) GetPvz(c *gin.Context, params generated.GetPvzParams) {
 	pvzResp, err := h.pvzService.GetPvz(c.Request.Context(), params)
 	var userErr *custom_errors.UserError
 	if errors.As(err, &userErr) {
@@ -138,7 +138,7 @@ func (h *Handler) GetPvz(c *gin.Context, params generated.GetPvzParams) {
 	c.JSON(http.StatusOK, pvzResp)
 }
 
-func (h *Handler) PostPvz(c *gin.Context) {
+func (h *HttpHandler) PostPvz(c *gin.Context) {
 	var pvzReq generated.PostPvzJSONRequestBody
 	if err := c.ShouldBindJSON(&pvzReq); err != nil {
 		c.JSON(http.StatusBadRequest, generated.Error{Message: "Invalid request format to create pvz: " + err.Error()})
@@ -160,7 +160,7 @@ func (h *Handler) PostPvz(c *gin.Context) {
 	c.JSON(http.StatusCreated, pvzResp)
 }
 
-func (h *Handler) PostPvzPvzIdCloseLastReception(c *gin.Context, pvzId openapi_types.UUID) {
+func (h *HttpHandler) PostPvzPvzIdCloseLastReception(c *gin.Context, pvzId openapi_types.UUID) {
 	receptionResp, err := h.receptionService.CloseReception(c.Request.Context(), pvzId)
 	var userErr *custom_errors.UserError
 	if errors.As(err, &userErr) {
@@ -176,7 +176,7 @@ func (h *Handler) PostPvzPvzIdCloseLastReception(c *gin.Context, pvzId openapi_t
 	c.JSON(http.StatusOK, receptionResp)
 }
 
-func (h *Handler) PostPvzPvzIdDeleteLastProduct(c *gin.Context, pvzId openapi_types.UUID) {
+func (h *HttpHandler) PostPvzPvzIdDeleteLastProduct(c *gin.Context, pvzId openapi_types.UUID) {
 	err := h.productService.DeleteLastProduct(c.Request.Context(), pvzId)
 	var userErr *custom_errors.UserError
 	if errors.As(err, &userErr) {
@@ -192,7 +192,7 @@ func (h *Handler) PostPvzPvzIdDeleteLastProduct(c *gin.Context, pvzId openapi_ty
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-func (h *Handler) PostReceptions(c *gin.Context) {
+func (h *HttpHandler) PostReceptions(c *gin.Context) {
 	var pvzIdReq generated.PostReceptionsJSONRequestBody
 	if err := c.ShouldBindJSON(&pvzIdReq); err != nil {
 		c.JSON(http.StatusBadRequest, generated.Error{Message: "Invalid request format to create reception: " + err.Error()})
@@ -214,7 +214,7 @@ func (h *Handler) PostReceptions(c *gin.Context) {
 	c.JSON(http.StatusCreated, receptionResp)
 }
 
-func (h *Handler) PostRegister(c *gin.Context) {
+func (h *HttpHandler) PostRegister(c *gin.Context) {
 	var req generated.PostRegisterJSONRequestBody
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, generated.Error{Message: "Invalid request format to register: " + err.Error()})

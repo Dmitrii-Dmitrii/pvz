@@ -141,7 +141,7 @@ func setupTestEnv() (*gin.Engine, *MockUserService, *MockPvzService, *MockProduc
 }
 
 func TestPostDummyLogin(t *testing.T) {
-	t.Run("Успешный DummyLogin для роли Employee", func(t *testing.T) {
+	t.Run("Dummy login", func(t *testing.T) {
 		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
@@ -172,10 +172,10 @@ func TestPostDummyLogin(t *testing.T) {
 				assert.True(t, cookie.HttpOnly)
 			}
 		}
-		assert.True(t, found, "Cookie auth_token должен быть установлен")
+		assert.True(t, found)
 	})
 
-	t.Run("Ошибка валидации роли", func(t *testing.T) {
+	t.Run("Dummy login with invalid role", func(t *testing.T) {
 		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
@@ -197,7 +197,7 @@ func TestPostDummyLogin(t *testing.T) {
 		assert.Equal(t, "Invalid role", response.Message)
 	})
 
-	t.Run("Ошибка пользователя при DummyLogin", func(t *testing.T) {
+	t.Run("Dummy login with user error", func(t *testing.T) {
 		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
@@ -222,7 +222,7 @@ func TestPostDummyLogin(t *testing.T) {
 		assert.Contains(t, response.Message, "Invalid request to dummy login")
 	})
 
-	t.Run("Внутренняя ошибка сервера при DummyLogin", func(t *testing.T) {
+	t.Run("Dummy login with internal error", func(t *testing.T) {
 		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
@@ -248,7 +248,7 @@ func TestPostDummyLogin(t *testing.T) {
 }
 
 func TestPostLogin(t *testing.T) {
-	t.Run("Успешный Login", func(t *testing.T) {
+	t.Run("Login", func(t *testing.T) {
 		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
@@ -280,10 +280,10 @@ func TestPostLogin(t *testing.T) {
 				assert.Equal(t, "valid_token", cookie.Value)
 			}
 		}
-		assert.True(t, found, "Cookie auth_token должен быть установлен")
+		assert.True(t, found)
 	})
 
-	t.Run("Ошибка авторизации при Login", func(t *testing.T) {
+	t.Run("Login with wrong password", func(t *testing.T) {
 		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
@@ -369,7 +369,7 @@ func TestPostLogin(t *testing.T) {
 }
 
 func TestPostProducts(t *testing.T) {
-	t.Run("Успешное создание продукта", func(t *testing.T) {
+	t.Run("Create product in reception in progress", func(t *testing.T) {
 		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 		pvzId := uuid.New()
@@ -377,6 +377,7 @@ func TestPostProducts(t *testing.T) {
 			PvzId: pvzId,
 			Type:  generated.PostProductsJSONBodyTypeОбувь,
 		}
+
 		jsonData, _ := json.Marshal(productReq)
 		productId := uuid.New()
 		dateTime := time.Now().Add(-time.Hour)
@@ -408,7 +409,7 @@ func TestPostProducts(t *testing.T) {
 		assert.Equal(t, generated.ProductTypeОбувь, response.Type)
 	})
 
-	t.Run("Ошибка пользователя при создании продукта", func(t *testing.T) {
+	t.Run("Create product with invalid type", func(t *testing.T) {
 		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
@@ -467,7 +468,7 @@ func TestPostProducts(t *testing.T) {
 }
 
 func TestGetPvz(t *testing.T) {
-	t.Run("Успешное получение списка ПВЗ с дефолтными параметрами", func(t *testing.T) {
+	t.Run("Get pvz with default params", func(t *testing.T) {
 		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
@@ -495,7 +496,7 @@ func TestGetPvz(t *testing.T) {
 		assert.Equal(t, expectedResp, response)
 	})
 
-	t.Run("Успешное получение списка ПВЗ с указанием всех параметров", func(t *testing.T) {
+	t.Run("Get pvz with pagination and date range", func(t *testing.T) {
 		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
@@ -536,7 +537,7 @@ func TestGetPvz(t *testing.T) {
 		assert.Equal(t, expectedResp, response)
 	})
 
-	t.Run("Ошибка: endDate раньше startDate", func(t *testing.T) {
+	t.Run("Get pvz with invalid date range", func(t *testing.T) {
 		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
@@ -569,7 +570,7 @@ func TestGetPvz(t *testing.T) {
 		assert.Contains(t, response.Message, "Invalid request format to get pvz")
 	})
 
-	t.Run("Ошибка: недопустимое значение лимита", func(t *testing.T) {
+	t.Run("Get pvz with invalid limit", func(t *testing.T) {
 		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
@@ -600,7 +601,7 @@ func TestGetPvz(t *testing.T) {
 		assert.Contains(t, response.Message, "Invalid request format to get pvz")
 	})
 
-	t.Run("Ошибка: недопустимое значение страницы", func(t *testing.T) {
+	t.Run("Get pvz with invalid page", func(t *testing.T) {
 		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
@@ -631,7 +632,7 @@ func TestGetPvz(t *testing.T) {
 		assert.Contains(t, response.Message, "Invalid request format to get pvz")
 	})
 
-	t.Run("Ошибка сервера при получении данных", func(t *testing.T) {
+	t.Run("Get pvz with internal error", func(t *testing.T) {
 		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
@@ -658,7 +659,7 @@ func TestGetPvz(t *testing.T) {
 }
 
 func TestPostPvz(t *testing.T) {
-	t.Run("Успешное создание PVZ", func(t *testing.T) {
+	t.Run("Create pvz", func(t *testing.T) {
 		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
@@ -691,7 +692,7 @@ func TestPostPvz(t *testing.T) {
 		assert.Equal(t, generated.СанктПетербург, response.City)
 	})
 
-	t.Run("Post pvz with user error", func(t *testing.T) {
+	t.Run("Create pvz with user error", func(t *testing.T) {
 		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
@@ -716,7 +717,7 @@ func TestPostPvz(t *testing.T) {
 		assert.Contains(t, response.Message, "Invalid request format to create pvz")
 	})
 
-	t.Run("Post pvz with internal error", func(t *testing.T) {
+	t.Run("Create pvz with internal error", func(t *testing.T) {
 		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
@@ -743,8 +744,8 @@ func TestPostPvz(t *testing.T) {
 }
 
 func TestPostPvzPvzIdCloseLastReception(t *testing.T) {
-	t.Run("Успешное закрытие последней приемки", func(t *testing.T) {
-		_, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
+	t.Run("Close last reception", func(t *testing.T) {
+		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
 		pvzId := uuid.New()
@@ -758,16 +759,14 @@ func TestPostPvzPvzIdCloseLastReception(t *testing.T) {
 			DateTime: dateTime,
 		}, nil).Once()
 
+		router.POST("/pvz/"+pvzId.String()+"/close-last-reception", func(c *gin.Context) {
+			handler.PostPvzPvzIdCloseLastReception(c, pvzId)
+		})
+
 		req, _ := http.NewRequest("POST", "/pvz/"+pvzId.String()+"/close-last-reception", nil)
 		w := httptest.NewRecorder()
 
-		ctx, _ := gin.CreateTestContext(w)
-		ctx.Request = req
-		ctx.Params = gin.Params{
-			gin.Param{Key: "pvzId", Value: pvzId.String()},
-		}
-
-		handler.PostPvzPvzIdCloseLastReception(ctx, pvzId)
+		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 		mockReceptionService.AssertExpectations(t)
@@ -779,7 +778,7 @@ func TestPostPvzPvzIdCloseLastReception(t *testing.T) {
 	})
 
 	t.Run("Close last reception with user error", func(t *testing.T) {
-		_, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
+		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
 		pvzId := uuid.New()
@@ -787,16 +786,14 @@ func TestPostPvzPvzIdCloseLastReception(t *testing.T) {
 		userErr := custom_errors.UserError{}
 		mockReceptionService.On("CloseReception", mock.Anything, pvzId).Return(nil, &userErr).Once()
 
+		router.POST("/pvz/"+pvzId.String()+"/close-last-reception", func(c *gin.Context) {
+			handler.PostPvzPvzIdCloseLastReception(c, pvzId)
+		})
+
 		req, _ := http.NewRequest("POST", "/pvz/"+pvzId.String()+"/close-last-reception", nil)
 		w := httptest.NewRecorder()
 
-		ctx, _ := gin.CreateTestContext(w)
-		ctx.Request = req
-		ctx.Params = gin.Params{
-			gin.Param{Key: "pvzId", Value: pvzId.String()},
-		}
-
-		handler.PostPvzPvzIdCloseLastReception(ctx, pvzId)
+		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		var response generated.Error
@@ -805,7 +802,7 @@ func TestPostPvzPvzIdCloseLastReception(t *testing.T) {
 	})
 
 	t.Run("Close last reception with internal error", func(t *testing.T) {
-		_, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
+		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
 		pvzId := uuid.New()
@@ -813,16 +810,14 @@ func TestPostPvzPvzIdCloseLastReception(t *testing.T) {
 		internalErr := errors.New("internal error")
 		mockReceptionService.On("CloseReception", mock.Anything, pvzId).Return(nil, internalErr).Once()
 
+		router.POST("/pvz/"+pvzId.String()+"/close-last-reception", func(c *gin.Context) {
+			handler.PostPvzPvzIdCloseLastReception(c, pvzId)
+		})
+
 		req, _ := http.NewRequest("POST", "/pvz/"+pvzId.String()+"/close-last-reception", nil)
 		w := httptest.NewRecorder()
 
-		ctx, _ := gin.CreateTestContext(w)
-		ctx.Request = req
-		ctx.Params = gin.Params{
-			gin.Param{Key: "pvzId", Value: pvzId.String()},
-		}
-
-		handler.PostPvzPvzIdCloseLastReception(ctx, pvzId)
+		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 		var response generated.Error
@@ -832,31 +827,29 @@ func TestPostPvzPvzIdCloseLastReception(t *testing.T) {
 }
 
 func TestPostPvzPvzIdDeleteLastProduct(t *testing.T) {
-	t.Run("Успешное удаление последнего продукта", func(t *testing.T) {
-		_, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
+	t.Run("Delete last product", func(t *testing.T) {
+		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
 		pvzId := uuid.New()
 
 		mockProductService.On("DeleteLastProduct", mock.Anything, pvzId).Return(nil).Once()
 
+		router.POST("/pvz/"+pvzId.String()+"/delete-last-product", func(c *gin.Context) {
+			handler.PostPvzPvzIdDeleteLastProduct(c, pvzId)
+		})
+
 		req, _ := http.NewRequest("POST", "/pvz/"+pvzId.String()+"/delete-last-product", nil)
 		w := httptest.NewRecorder()
 
-		ctx, _ := gin.CreateTestContext(w)
-		ctx.Request = req
-		ctx.Params = gin.Params{
-			gin.Param{Key: "pvzId", Value: pvzId.String()},
-		}
-
-		handler.PostPvzPvzIdDeleteLastProduct(ctx, pvzId)
+		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 		mockProductService.AssertExpectations(t)
 	})
 
 	t.Run("Delete last product with user error", func(t *testing.T) {
-		_, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
+		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
 		pvzId := uuid.New()
@@ -864,16 +857,14 @@ func TestPostPvzPvzIdDeleteLastProduct(t *testing.T) {
 		userErr := custom_errors.UserError{}
 		mockProductService.On("DeleteLastProduct", mock.Anything, pvzId).Return(&userErr).Once()
 
+		router.POST("/pvz/"+pvzId.String()+"/delete-last-product", func(c *gin.Context) {
+			handler.PostPvzPvzIdDeleteLastProduct(c, pvzId)
+		})
+
 		req, _ := http.NewRequest("POST", "/pvz/"+pvzId.String()+"/delete-last-product", nil)
 		w := httptest.NewRecorder()
 
-		ctx, _ := gin.CreateTestContext(w)
-		ctx.Request = req
-		ctx.Params = gin.Params{
-			gin.Param{Key: "pvzId", Value: pvzId.String()},
-		}
-
-		handler.PostPvzPvzIdDeleteLastProduct(ctx, pvzId)
+		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		var response generated.Error
@@ -882,7 +873,7 @@ func TestPostPvzPvzIdDeleteLastProduct(t *testing.T) {
 	})
 
 	t.Run("Delete last product with internal error", func(t *testing.T) {
-		_, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
+		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
 		pvzId := uuid.New()
@@ -890,16 +881,14 @@ func TestPostPvzPvzIdDeleteLastProduct(t *testing.T) {
 		internalErr := errors.New("internal error")
 		mockProductService.On("DeleteLastProduct", mock.Anything, pvzId).Return(internalErr).Once()
 
+		router.POST("/pvz/"+pvzId.String()+"/delete-last-product", func(c *gin.Context) {
+			handler.PostPvzPvzIdDeleteLastProduct(c, pvzId)
+		})
+
 		req, _ := http.NewRequest("POST", "/pvz/"+pvzId.String()+"/delete-last-product", nil)
 		w := httptest.NewRecorder()
 
-		ctx, _ := gin.CreateTestContext(w)
-		ctx.Request = req
-		ctx.Params = gin.Params{
-			gin.Param{Key: "pvzId", Value: pvzId.String()},
-		}
-
-		handler.PostPvzPvzIdDeleteLastProduct(ctx, pvzId)
+		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 		var response generated.Error
@@ -909,7 +898,7 @@ func TestPostPvzPvzIdDeleteLastProduct(t *testing.T) {
 }
 
 func TestPostReceptions(t *testing.T) {
-	t.Run("Успешное создание приемки", func(t *testing.T) {
+	t.Run("Create reception", func(t *testing.T) {
 		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
@@ -944,7 +933,7 @@ func TestPostReceptions(t *testing.T) {
 		assert.Equal(t, generated.InProgress, response.Status)
 	})
 
-	t.Run("Post receptions with user error", func(t *testing.T) {
+	t.Run("Create receptions with user error", func(t *testing.T) {
 		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
@@ -970,7 +959,7 @@ func TestPostReceptions(t *testing.T) {
 		assert.Contains(t, response.Message, "Invalid request format to create reception")
 	})
 
-	t.Run("Post receptions with internal error", func(t *testing.T) {
+	t.Run("Create receptions with internal error", func(t *testing.T) {
 		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
@@ -998,7 +987,7 @@ func TestPostReceptions(t *testing.T) {
 }
 
 func TestPostRegister(t *testing.T) {
-	t.Run("Успешная регистрация", func(t *testing.T) {
+	t.Run("Register", func(t *testing.T) {
 		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
@@ -1042,10 +1031,10 @@ func TestPostRegister(t *testing.T) {
 				assert.Equal(t, "valid_token", cookie.Value)
 			}
 		}
-		assert.True(t, found, "Cookie auth_token должен быть установлен")
+		assert.True(t, found)
 	})
 
-	t.Run("Ошибка валидации роли при регистрации", func(t *testing.T) {
+	t.Run("Register with invalid role", func(t *testing.T) {
 		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
@@ -1069,7 +1058,7 @@ func TestPostRegister(t *testing.T) {
 		assert.Contains(t, response.Message, "Invalid role")
 	})
 
-	t.Run("Post register with internal error", func(t *testing.T) {
+	t.Run("register with internal error", func(t *testing.T) {
 		router, mockUserService, mockPvzService, mockProductService, mockReceptionService := setupTestEnv()
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 

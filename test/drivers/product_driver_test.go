@@ -17,7 +17,7 @@ import (
 )
 
 func TestCreateProduct(t *testing.T) {
-	pool, cleanup := setupPostgresContainer(t)
+	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 
 	driver := product_driver.NewProductDriver(pool)
@@ -55,7 +55,7 @@ func TestCreateProduct(t *testing.T) {
 }
 
 func TestDeleteLastProduct(t *testing.T) {
-	pool, cleanup := setupPostgresContainer(t)
+	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 
 	productDriver := product_driver.NewProductDriver(pool)

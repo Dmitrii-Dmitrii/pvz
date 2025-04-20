@@ -60,6 +60,14 @@ func (s *PvzService) CreatePvz(ctx context.Context, pvzDto generated.PVZ) (*gene
 		return nil, err
 	}
 
+	idDto, err := services.ConvertPgUuidToOpenAPI(id)
+	if err != nil {
+		return nil, err
+	}
+
+	pvzDto.Id = &idDto
+	pvzDto.RegistrationDate = &registrationDate
+
 	return &pvzDto, nil
 }
 

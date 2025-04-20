@@ -14,7 +14,7 @@ import (
 )
 
 func TestCreateReception(t *testing.T) {
-	pool, cleanup := setupPostgresContainer(t)
+	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 
 	driver := reception_driver.NewReceptionDriver(pool)
@@ -51,7 +51,7 @@ func TestCreateReception(t *testing.T) {
 }
 
 func TestCloseReception(t *testing.T) {
-	pool, cleanup := setupPostgresContainer(t)
+	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 
 	driver := reception_driver.NewReceptionDriver(pool)
@@ -94,7 +94,7 @@ func TestCloseReception(t *testing.T) {
 }
 
 func TestGetLastReceptionStatus(t *testing.T) {
-	pool, cleanup := setupPostgresContainer(t)
+	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 
 	driver := reception_driver.NewReceptionDriver(pool)
