@@ -393,7 +393,7 @@ func TestValidateToken(t *testing.T) {
 			Email:  email,
 			Role:   role,
 			RegisteredClaims: jwt.RegisteredClaims{
-				ExpiresAt: jwt.NewNumericDate(time.Now().Add(-1 * time.Hour)), // Срок истек час назад
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(-1 * time.Hour)),
 				IssuedAt:  jwt.NewNumericDate(time.Now().Add(-2 * time.Hour)),
 				NotBefore: jwt.NewNumericDate(time.Now().Add(-2 * time.Hour)),
 			},

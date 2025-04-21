@@ -4,6 +4,7 @@ import (
 	"context"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/rs/zerolog/log"
+	"pvz/internal"
 	"pvz/internal/drivers/product_driver"
 	"pvz/internal/generated"
 	"pvz/internal/models/custom_errors"
@@ -68,6 +69,8 @@ func (s *ProductService) CreateProduct(ctx context.Context, pvzIdDto openapi_typ
 		ReceptionId: receptionIdDto,
 		Type:        generated.ProductType(productType),
 	}
+
+	internal.ProductCreatedTotal.Inc()
 
 	return productDto, nil
 }

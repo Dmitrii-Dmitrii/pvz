@@ -17,9 +17,6 @@ import (
 func SetupPostgresContainer(t *testing.T) (*pgxpool.Pool, func()) {
 	ctx := context.Background()
 
-	//containerCtx, cancel := context.WithTimeout(ctx, time.Minute)
-	//defer cancel()
-
 	pgPort := "5432/tcp"
 	dbName := "testdb"
 	dbUser := "postgres"

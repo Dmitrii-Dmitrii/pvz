@@ -7,12 +7,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"net/http"
 	"os"
 	"os/signal"
 	"pvz/api"
+	"pvz/internal"
 	"pvz/internal/drivers/product_driver"
 	"pvz/internal/drivers/pvz_driver"
 	"pvz/internal/drivers/reception_driver"
@@ -27,6 +30,16 @@ import (
 	"syscall"
 	"time"
 )
+
+var registry = prometheus.NewRegistry()
+
+func init() {
+	registry.MustRegister(internal.HttpRequestsTotal)
+	registry.MustRegister(internal.HttpRequestDuration)
+	registry.MustRegister(internal.PvzCreatedTotal)
+	registry.MustRegister(internal.ReceptionCreatedTotal)
+	registry.MustRegister(internal.ProductCreatedTotal)
+}
 
 func main() {
 	if err := godotenv.Load(); err != nil {
@@ -56,7 +69,19 @@ func main() {
 
 	httpHandler := api.NewHttpHandler(pvzService, receptionService, productService, userService)
 
+	go func() {
+		mux := http.NewServeMux()
+		mux.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
+
+		log.Info().Msg("Starting Prometheus metrics server on :9000")
+		if err := http.ListenAndServe(":9000", mux); err != nil {
+			log.Error().Err(err).Msg("Failed to start Prometheus metrics server")
+		}
+	}()
+
 	router := gin.Default()
+
+	router.Use(middlewares.PrometheusMiddleware())
 
 	authMiddleware := middlewares.NewAuthMiddleware(userService)
 

@@ -6,6 +6,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/rs/zerolog/log"
+	"pvz/internal"
 	"pvz/internal/drivers/reception_driver"
 	"pvz/internal/generated"
 	"pvz/internal/models/custom_errors"
@@ -58,6 +59,7 @@ func (s *ReceptionService) CreateReception(ctx context.Context, pvzIdDto openapi
 		Status:   generated.ReceptionStatus(reception.Status),
 	}
 
+	internal.ReceptionCreatedTotal.Inc()
 	return receptionDto, nil
 }
 

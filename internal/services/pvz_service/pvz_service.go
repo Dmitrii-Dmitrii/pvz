@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/rs/zerolog/log"
+	"pvz/internal"
 	"pvz/internal/drivers/pvz_driver"
 	"pvz/internal/generated"
 	"pvz/internal/models/custom_errors"
@@ -67,6 +68,8 @@ func (s *PvzService) CreatePvz(ctx context.Context, pvzDto generated.PVZ) (*gene
 
 	pvzDto.Id = &idDto
 	pvzDto.RegistrationDate = &registrationDate
+
+	internal.PvzCreatedTotal.Inc()
 
 	return &pvzDto, nil
 }
