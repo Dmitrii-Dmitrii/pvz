@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	openapi_types "github.com/oapi-codegen/runtime/types"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	"pvz/internal/generated"
 	"pvz/internal/models/custom_errors"
@@ -31,14 +32,18 @@ func NewHttpHandler(pvzService pvz_service.IPvzService, receptionService recepti
 }
 
 func (h *HttpHandler) PostDummyLogin(c *gin.Context) {
+	log.Info().Msg("dummy login started")
+
 	var req generated.PostDummyLoginJSONRequestBody
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Error().Err(err).Msg("failed to bind json body")
 		c.JSON(http.StatusBadRequest, generated.Error{Message: "Invalid request to dummy login: " + err.Error()})
 		return
 	}
 
 	roleDto := generated.UserRole(req.Role)
 	if roleDto != generated.UserRoleEmployee && roleDto != generated.UserRoleModerator {
+		log.Error().Msg("invalid role")
 		c.JSON(http.StatusBadRequest, generated.Error{Message: "Invalid role"})
 		return
 	}
@@ -66,11 +71,15 @@ func (h *HttpHandler) PostDummyLogin(c *gin.Context) {
 	)
 
 	c.JSON(http.StatusOK, token)
+	log.Info().Msgf("dummy login result: %s", token)
 }
 
 func (h *HttpHandler) PostLogin(c *gin.Context) {
+	log.Info().Msg("login started")
+
 	var req generated.PostLoginJSONRequestBody
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Error().Err(err).Msg("failed to bind json body")
 		c.JSON(http.StatusBadRequest, generated.Error{Message: "Invalid request to login: " + err.Error()})
 		return
 	}
@@ -98,11 +107,16 @@ func (h *HttpHandler) PostLogin(c *gin.Context) {
 	)
 
 	c.JSON(http.StatusOK, token)
+
+	log.Info().Msgf("login result: %s", token)
 }
 
 func (h *HttpHandler) PostProducts(c *gin.Context) {
+	log.Info().Msg("products started")
+
 	var productReq generated.PostProductsJSONRequestBody
 	if err := c.ShouldBindJSON(&productReq); err != nil {
+		log.Error().Err(err).Msg("failed to bind json body")
 		c.JSON(http.StatusBadRequest, generated.Error{Message: "Invalid request format to create product: " + err.Error()})
 		return
 	}
@@ -120,9 +134,13 @@ func (h *HttpHandler) PostProducts(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, productResp)
+
+	log.Info().Msgf("products result: %s", productResp)
 }
 
 func (h *HttpHandler) GetPvz(c *gin.Context, params generated.GetPvzParams) {
+	log.Info().Msg("get pvz started")
+
 	pvzResp, err := h.pvzService.GetPvz(c.Request.Context(), params)
 	var userErr *custom_errors.UserError
 	if errors.As(err, &userErr) {
@@ -136,11 +154,16 @@ func (h *HttpHandler) GetPvz(c *gin.Context, params generated.GetPvzParams) {
 	}
 
 	c.JSON(http.StatusOK, pvzResp)
+
+	log.Info().Msgf("pvz result: %s", pvzResp)
 }
 
 func (h *HttpHandler) PostPvz(c *gin.Context) {
+	log.Info().Msg("pvz started")
+
 	var pvzReq generated.PostPvzJSONRequestBody
 	if err := c.ShouldBindJSON(&pvzReq); err != nil {
+		log.Error().Err(err).Msg("failed to bind json body")
 		c.JSON(http.StatusBadRequest, generated.Error{Message: "Invalid request format to create pvz: " + err.Error()})
 		return
 	}
@@ -158,9 +181,13 @@ func (h *HttpHandler) PostPvz(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, pvzResp)
+
+	log.Info().Msgf("pvz result: %s", pvzResp)
 }
 
 func (h *HttpHandler) PostPvzPvzIdCloseLastReception(c *gin.Context, pvzId openapi_types.UUID) {
+	log.Info().Msg("close last reception started")
+
 	receptionResp, err := h.receptionService.CloseReception(c.Request.Context(), pvzId)
 	var userErr *custom_errors.UserError
 	if errors.As(err, &userErr) {
@@ -174,9 +201,13 @@ func (h *HttpHandler) PostPvzPvzIdCloseLastReception(c *gin.Context, pvzId opena
 	}
 
 	c.JSON(http.StatusOK, receptionResp)
+
+	log.Info().Msgf("close last reception result: %s", receptionResp)
 }
 
 func (h *HttpHandler) PostPvzPvzIdDeleteLastProduct(c *gin.Context, pvzId openapi_types.UUID) {
+	log.Info().Msg("delete last product started")
+
 	err := h.productService.DeleteLastProduct(c.Request.Context(), pvzId)
 	var userErr *custom_errors.UserError
 	if errors.As(err, &userErr) {
@@ -190,11 +221,15 @@ func (h *HttpHandler) PostPvzPvzIdDeleteLastProduct(c *gin.Context, pvzId openap
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+	log.Info().Msg("delete last product finished")
 }
 
 func (h *HttpHandler) PostReceptions(c *gin.Context) {
+	log.Info().Msg("receptions started")
+
 	var pvzIdReq generated.PostReceptionsJSONRequestBody
 	if err := c.ShouldBindJSON(&pvzIdReq); err != nil {
+		log.Error().Err(err).Msg("failed to bind json body")
 		c.JSON(http.StatusBadRequest, generated.Error{Message: "Invalid request format to create reception: " + err.Error()})
 		return
 	}
@@ -212,17 +247,23 @@ func (h *HttpHandler) PostReceptions(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, receptionResp)
+
+	log.Info().Msgf("receptions result: %s", receptionResp)
 }
 
 func (h *HttpHandler) PostRegister(c *gin.Context) {
+	log.Info().Msg("register started")
+
 	var req generated.PostRegisterJSONRequestBody
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Error().Err(err).Msg("failed to bind json body")
 		c.JSON(http.StatusBadRequest, generated.Error{Message: "Invalid request format to register: " + err.Error()})
 		return
 	}
 
 	roleDto := generated.UserRole(req.Role)
 	if roleDto != generated.UserRoleEmployee && roleDto != generated.UserRoleModerator {
+		log.Error().Msg("invalid role")
 		c.JSON(http.StatusBadRequest, generated.Error{Message: "Invalid role"})
 		return
 	}
@@ -250,4 +291,6 @@ func (h *HttpHandler) PostRegister(c *gin.Context) {
 	)
 
 	c.JSON(http.StatusCreated, userResp)
+
+	log.Info().Msgf("register result: %s", userResp)
 }

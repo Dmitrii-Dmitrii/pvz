@@ -133,6 +133,7 @@ func (s *UserService) Login(ctx context.Context, emailDto openapi_types.Email, p
 
 	user, err := s.driver.GetUserByEmail(ctx, email)
 	if err != nil {
+		log.Warn().Err(err).Msg(custom_errors.ErrUserNotFound.Message)
 		return "", err
 	}
 
@@ -162,6 +163,7 @@ func (s *UserService) ValidateToken(ctx context.Context, token string) (*user_mo
 
 	user, err := s.driver.GetUserById(ctx, pgUuid)
 	if err != nil {
+		log.Error().Err(err).Msg(custom_errors.ErrUserNotFound.Message)
 		return nil, custom_errors.ErrUserNotFound
 	}
 

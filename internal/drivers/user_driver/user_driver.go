@@ -38,7 +38,6 @@ func (d *UserDriver) GetUserByEmail(ctx context.Context, email string) (*user_mo
 	err := d.rwdb.QueryRow(ctx, drivers.QueryGetUserByEmail, email).Scan(&id, &passwordHash, &userRole)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			log.Warn().Msg(custom_errors.ErrUserNotFound.Message)
 			return nil, custom_errors.ErrUserNotFound
 		}
 

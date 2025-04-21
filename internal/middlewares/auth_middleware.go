@@ -3,6 +3,7 @@ package middlewares
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	"pvz/internal/generated"
 	"pvz/internal/models/custom_errors"
@@ -39,6 +40,7 @@ func (m *AuthMiddleware) AuthMiddleware(c *gin.Context) {
 
 	token, err := extractToken(c)
 	if err != nil {
+		log.Error().Err(err).Msg("Error extracting token")
 		c.JSON(http.StatusUnauthorized, generated.Error{Message: "Unauthorized: " + err.Error()})
 		c.Abort()
 		return
@@ -53,6 +55,7 @@ func (m *AuthMiddleware) AuthMiddleware(c *gin.Context) {
 	}
 
 	if err != nil {
+		log.Error().Err(err).Msg("Error validating token")
 		c.JSON(http.StatusInternalServerError, generated.Error{Message: "Auth error: " + err.Error()})
 		c.Abort()
 		return
@@ -62,6 +65,7 @@ func (m *AuthMiddleware) AuthMiddleware(c *gin.Context) {
 	c.Set(AuthTokenKey, token)
 
 	if !checkRole(c, user.Role, path) {
+		log.Error().Msgf("Role %s not allowed", user.Role)
 		c.JSON(http.StatusForbidden, generated.Error{Message: "Forbidden"})
 		c.Abort()
 		return
@@ -92,7 +96,7 @@ func extractToken(c *gin.Context) (string, error) {
 func checkRole(c *gin.Context, userRole user_model.UserRole, path string) bool {
 	method := c.Request.Method
 
-	if path == "/api/v1/pvz" && method == http.MethodPost {
+	if path == "/pvz" && method == http.MethodPost {
 		return string(userRole) == string(generated.UserRoleModerator)
 	}
 
