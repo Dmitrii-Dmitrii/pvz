@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: pvz_db
+    environment:
+      POSTGRES_USER: pvz_user
+      POSTGRES_PASSWORD: pvz_password
+      POSTGRES_DB: pvz_database
+    volumes:
+      - pvz_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+volumes:
+  pvz_data:
