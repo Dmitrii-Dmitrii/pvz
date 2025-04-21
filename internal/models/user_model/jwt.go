@@ -1,9 +1,9 @@
 package user_model
 
 import (
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/custom_errors"
 	"github.com/golang-jwt/jwt/v5"
 	"os"
-	"pvz/internal/models/custom_errors"
 	"time"
 )
 

@@ -2,8 +2,8 @@ package middlewares
 
 import (
 	"fmt"
+	"github.com/Dmitrii-Dmitrii/pvz/internal"
 	"github.com/gin-gonic/gin"
-	"pvz/internal"
 	"time"
 )
 

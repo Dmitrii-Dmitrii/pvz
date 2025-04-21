@@ -2,9 +2,9 @@ package user_service
 
 import (
 	"context"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/generated"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/user_model"
 	openapi_types "github.com/oapi-codegen/runtime/types"
-	"pvz/internal/generated"
-	"pvz/internal/models/user_model"
 )
 
 type IUserService interface {

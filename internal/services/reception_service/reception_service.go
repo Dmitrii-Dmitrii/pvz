@@ -3,15 +3,15 @@ package reception_service
 import (
 	"context"
 	"errors"
+	"github.com/Dmitrii-Dmitrii/pvz/internal"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/drivers/reception_driver"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/generated"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/custom_errors"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/reception_model"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/services"
 	"github.com/jackc/pgx/v5/pgtype"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/rs/zerolog/log"
-	"pvz/internal"
-	"pvz/internal/drivers/reception_driver"
-	"pvz/internal/generated"
-	"pvz/internal/models/custom_errors"
-	"pvz/internal/models/reception_model"
-	"pvz/internal/services"
 	"time"
 )
 

@@ -4,6 +4,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/Dmitrii-Dmitrii/pvz/api"
+	"github.com/Dmitrii-Dmitrii/pvz/internal"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/drivers/product_driver"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/drivers/pvz_driver"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/drivers/reception_driver"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/drivers/user_driver"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/generated"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/middlewares"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/custom_errors"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/services/product_service"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/services/pvz_service"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/services/reception_service"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/services/user_service"
+	pvz_v1 "github.com/Dmitrii-Dmitrii/pvz/proto/generated/pvz/v1"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
@@ -11,22 +25,12 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
-	"pvz/api"
-	"pvz/internal"
-	"pvz/internal/drivers/product_driver"
-	"pvz/internal/drivers/pvz_driver"
-	"pvz/internal/drivers/reception_driver"
-	"pvz/internal/drivers/user_driver"
-	"pvz/internal/generated"
-	"pvz/internal/middlewares"
-	"pvz/internal/models/custom_errors"
-	"pvz/internal/services/product_service"
-	"pvz/internal/services/pvz_service"
-	"pvz/internal/services/reception_service"
-	"pvz/internal/services/user_service"
 	"syscall"
 	"time"
 )
@@ -34,6 +38,10 @@ import (
 var registry = prometheus.NewRegistry()
 
 func init() {
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	zerolog.SetGlobalLevel(zerolog.GlobalLevel())
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
 	registry.MustRegister(internal.HttpRequestsTotal)
 	registry.MustRegister(internal.HttpRequestDuration)
 	registry.MustRegister(internal.PvzCreatedTotal)
@@ -46,9 +54,7 @@ func main() {
 		log.Error().Err(err).Msg(custom_errors.ErrEnvLoading.Message)
 	}
 
-	setupLogger()
-
-	connString := "postgres://pvz_user:pvz_password@localhost:5432/pvz_database?sslmode=disable"
+	connString := os.Getenv("CONNECTION_STRING")
 	ctx := context.Background()
 	dbpool, err := pgxpool.New(ctx, connString)
 	if err != nil {
@@ -69,13 +75,37 @@ func main() {
 
 	httpHandler := api.NewHttpHandler(pvzService, receptionService, productService, userService)
 
+	prometheusAddr := getPrometheusAddress()
+
 	go func() {
 		mux := http.NewServeMux()
 		mux.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
 
-		log.Info().Msg("Starting Prometheus metrics server on :9000")
+		log.Info().Msgf("Prometheus metrics starting on %s", prometheusAddr)
 		if err := http.ListenAndServe(":9000", mux); err != nil {
 			log.Error().Err(err).Msg("Failed to start Prometheus metrics server")
+		}
+	}()
+
+	grpcAddr := getGrpcAddress()
+
+	go func() {
+		lis, err := net.Listen("tcp", grpcAddr)
+		if err != nil {
+			log.Error().Err(err).Msgf("Failed to listen on %s", grpcAddr)
+			return
+		}
+
+		grpcServer := grpc.NewServer()
+
+		pvzGrpcHandler := api.NewGrpcHandler(pvzService)
+		pvz_v1.RegisterPVZServiceServer(grpcServer, pvzGrpcHandler)
+
+		reflection.Register(grpcServer)
+
+		log.Info().Msgf("gRPC server starting on %s", grpcAddr)
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Error().Err(err).Msg("Failed to start gRPC server")
 		}
 	}()
 
@@ -102,7 +132,7 @@ func main() {
 	}
 
 	go func() {
-		log.Info().Msg(fmt.Sprintf("Server starting on %s\n", server.Addr))
+		log.Info().Msg(fmt.Sprintf("Server starting on %s", server.Addr))
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Error().Err(err).Msg(custom_errors.ErrStartServer.Message)
 		}
@@ -123,16 +153,26 @@ func main() {
 	log.Info().Msg("Server exiting")
 }
 
-func setupLogger() {
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	zerolog.SetGlobalLevel(zerolog.GlobalLevel())
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-}
-
 func getServerAddress() string {
 	port := os.Getenv("SERVER_PORT")
 	if port == "" {
 		port = "8080"
+	}
+	return ":" + port
+}
+
+func getPrometheusAddress() string {
+	port := os.Getenv("PROMETHEUS_PORT")
+	if port == "" {
+		port = "9000"
+	}
+	return ":" + port
+}
+
+func getGrpcAddress() string {
+	port := os.Getenv("GRPC_PORT")
+	if port == "" {
+		port = "3000"
 	}
 	return ":" + port
 }

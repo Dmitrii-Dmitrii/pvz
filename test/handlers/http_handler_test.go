@@ -5,14 +5,15 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/Dmitrii-Dmitrii/pvz/api"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/custom_errors"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/pvz_model"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/reception_model"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/user_model"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"net/http"
 	"net/http/httptest"
-	"pvz/api"
-	"pvz/internal/models/custom_errors"
-	"pvz/internal/models/reception_model"
-	"pvz/internal/models/user_model"
 	"testing"
 	"time"
 
@@ -21,7 +22,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"pvz/internal/generated"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/generated"
 )
 
 type MockUserService struct {
@@ -72,12 +73,17 @@ func (m *MockPvzService) CreatePvz(ctx context.Context, pvzDto generated.PVZ) (*
 	return args.Get(0).(*generated.PVZ), args.Error(1)
 }
 
-func (m *MockPvzService) GetPvz(ctx context.Context, params generated.GetPvzParams) ([]map[string]interface{}, error) {
+func (m *MockPvzService) GetPvzFullInfo(ctx context.Context, params generated.GetPvzParams) ([]map[string]interface{}, error) {
 	args := m.Called(ctx, params)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).([]map[string]interface{}), args.Error(1)
+}
+
+func (m *MockPvzService) GetAllPvz(ctx context.Context) ([]pvz_model.Pvz, error) {
+	args := m.Called(ctx)
+	return args.Get(0).([]pvz_model.Pvz), args.Error(1)
 }
 
 type MockReceptionService struct {
@@ -477,7 +483,7 @@ func TestGetPvz(t *testing.T) {
 			{"id": "2", "name": "ПВЗ 2", "address": "Адрес 2"},
 		}
 
-		mockPvzService.On("GetPvz", mock.Anything, generated.GetPvzParams{}).
+		mockPvzService.On("GetPvzFullInfo", mock.Anything, generated.GetPvzParams{}).
 			Return(expectedResp, nil).Once()
 
 		req, _ := http.NewRequest("GET", "/pvz", nil)
@@ -517,7 +523,7 @@ func TestGetPvz(t *testing.T) {
 			Limit:     &limit,
 		}
 
-		mockPvzService.On("GetPvz", mock.Anything, params).
+		mockPvzService.On("GetPvzFullInfo", mock.Anything, params).
 			Return(expectedResp, nil).Once()
 
 		req, _ := http.NewRequest("GET", "/pvz?startDate=2023-01-01T00:00:00Z&endDate=2023-12-31T23:59:59Z&page=2&limit=15", nil)
@@ -550,7 +556,7 @@ func TestGetPvz(t *testing.T) {
 		}
 
 		userErr := custom_errors.ErrDateRange
-		mockPvzService.On("GetPvz", mock.Anything, params).
+		mockPvzService.On("GetPvzFullInfo", mock.Anything, params).
 			Return(nil, userErr).Once()
 
 		req, _ := http.NewRequest("GET", "/pvz?startDate=2023-12-31T00:00:00Z&endDate=2023-01-01T00:00:00Z", nil)
@@ -581,7 +587,7 @@ func TestGetPvz(t *testing.T) {
 		}
 
 		userErr := custom_errors.ErrLimitValue
-		mockPvzService.On("GetPvz", mock.Anything, params).
+		mockPvzService.On("GetPvzFullInfo", mock.Anything, params).
 			Return(nil, userErr).Once()
 
 		req, _ := http.NewRequest("GET", "/pvz?limit=50", nil)
@@ -612,7 +618,7 @@ func TestGetPvz(t *testing.T) {
 		}
 
 		userErr := custom_errors.ErrPageValue
-		mockPvzService.On("GetPvz", mock.Anything, params).
+		mockPvzService.On("GetPvzFullInfo", mock.Anything, params).
 			Return(nil, userErr).Once()
 
 		req, _ := http.NewRequest("GET", "/pvz?page=0", nil)
@@ -637,7 +643,7 @@ func TestGetPvz(t *testing.T) {
 		handler := api.NewHttpHandler(mockPvzService, mockReceptionService, mockProductService, mockUserService)
 
 		internalErr := errors.New("database connection error")
-		mockPvzService.On("GetPvz", mock.Anything, generated.GetPvzParams{}).
+		mockPvzService.On("GetPvzFullInfo", mock.Anything, generated.GetPvzParams{}).
 			Return(nil, internalErr).Once()
 
 		req, _ := http.NewRequest("GET", "/pvz", nil)

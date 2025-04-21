@@ -2,13 +2,13 @@ package middlewares
 
 import (
 	"errors"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/generated"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/custom_errors"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/user_model"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/services/user_service"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 	"net/http"
-	"pvz/internal/generated"
-	"pvz/internal/models/custom_errors"
-	"pvz/internal/models/user_model"
-	"pvz/internal/services/user_service"
 	"strings"
 )
 

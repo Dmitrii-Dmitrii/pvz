@@ -2,12 +2,12 @@ package product_driver
 
 import (
 	"context"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/drivers"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/custom_errors"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/product_model"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog/log"
-	"pvz/internal/drivers"
-	"pvz/internal/models/custom_errors"
-	"pvz/internal/models/product_model"
 )
 
 type ProductDriver struct {

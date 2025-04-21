@@ -85,4 +85,11 @@ const (
 	FROM users
 	WHERE id = $1
 `
+	QueryGetAllPvz = `
+	SELECT 
+	    id, 
+	    registration_date, 
+	    city
+	FROM pvz
+`
 )

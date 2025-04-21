@@ -2,10 +2,10 @@ package reception_service
 
 import (
 	"context"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/generated"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/reception_model"
 	"github.com/jackc/pgx/v5/pgtype"
 	openapi_types "github.com/oapi-codegen/runtime/types"
-	"pvz/internal/generated"
-	"pvz/internal/models/reception_model"
 )
 
 type IReceptionService interface {

@@ -2,16 +2,16 @@ package product_service
 
 import (
 	"context"
+	"github.com/Dmitrii-Dmitrii/pvz/internal"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/drivers/product_driver"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/generated"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/custom_errors"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/product_model"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/reception_model"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/services"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/services/reception_service"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/rs/zerolog/log"
-	"pvz/internal"
-	"pvz/internal/drivers/product_driver"
-	"pvz/internal/generated"
-	"pvz/internal/models/custom_errors"
-	"pvz/internal/models/product_model"
-	"pvz/internal/models/reception_model"
-	"pvz/internal/services"
-	"pvz/internal/services/reception_service"
 	"time"
 )
 

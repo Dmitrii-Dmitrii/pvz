@@ -5,13 +5,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Dmitrii-Dmitrii/pvz/internal/drivers/pvz_driver"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/custom_errors"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/pvz_model"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"pvz/internal/drivers/pvz_driver"
-	"pvz/internal/models/custom_errors"
-	"pvz/internal/models/pvz_model"
 )
 
 func TestCreatePvz(t *testing.T) {
@@ -55,7 +55,7 @@ func TestGetPvzById(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, pvzIds)
 
-	t.Run("Existing pvz", func(t *testing.T) {
+	t.Run("Get existing pvz by id", func(t *testing.T) {
 		result, err := driver.GetPvzById(ctx, pvzIds[0])
 
 		require.NoError(t, err)
@@ -65,7 +65,7 @@ func TestGetPvzById(t *testing.T) {
 		assert.True(t, result.City == pvz_model.Moscow || result.City == pvz_model.SPb)
 	})
 
-	t.Run("Non-existent pvz", func(t *testing.T) {
+	t.Run("Get non-existing pvz", func(t *testing.T) {
 		nonExistentId := pgtype.UUID{Bytes: uuid.New(), Valid: true}
 		result, err := driver.GetPvzById(ctx, nonExistentId)
 
@@ -75,7 +75,7 @@ func TestGetPvzById(t *testing.T) {
 	})
 }
 
-func TestGetPvz(t *testing.T) {
+func TestGetPvzFullInfo(t *testing.T) {
 	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 
@@ -85,11 +85,11 @@ func TestGetPvz(t *testing.T) {
 	_, _, _, err := createTestData(ctx, pool)
 	require.NoError(t, err)
 
-	t.Run("All pvz", func(t *testing.T) {
+	t.Run("Get pvz full info", func(t *testing.T) {
 		limit := uint32(10)
 		offset := uint32(0)
 
-		results, err := driver.GetPvz(ctx, limit, offset, nil, nil)
+		results, err := driver.GetPvzFullInfo(ctx, limit, offset, nil, nil)
 
 		require.NoError(t, err)
 		assert.NotEmpty(t, results)
@@ -106,13 +106,13 @@ func TestGetPvz(t *testing.T) {
 		}
 	})
 
-	t.Run("Pvz with time filter", func(t *testing.T) {
+	t.Run("Get pvz full info with time filter", func(t *testing.T) {
 		limit := uint32(10)
 		offset := uint32(0)
 		startTime := time.Now().Add(-36 * time.Hour)
 		endTime := time.Now()
 
-		results, err := driver.GetPvz(ctx, limit, offset, &startTime, &endTime)
+		results, err := driver.GetPvzFullInfo(ctx, limit, offset, &startTime, &endTime)
 
 		require.NoError(t, err)
 		if len(results) > 0 {
@@ -122,19 +122,19 @@ func TestGetPvz(t *testing.T) {
 		}
 	})
 
-	t.Run("Pagination", func(t *testing.T) {
+	t.Run("Get pvz full info with pagination", func(t *testing.T) {
 		limit := uint32(1)
 		firstOffset := uint32(0)
 		secondOffset := uint32(1)
 
-		firstPage, err := driver.GetPvz(ctx, limit, firstOffset, nil, nil)
+		firstPage, err := driver.GetPvzFullInfo(ctx, limit, firstOffset, nil, nil)
 		require.NoError(t, err)
 
 		if len(firstPage) == 0 {
 			t.Skip("No data returned for pagination test")
 		}
 
-		secondPage, err := driver.GetPvz(ctx, limit, secondOffset, nil, nil)
+		secondPage, err := driver.GetPvzFullInfo(ctx, limit, secondOffset, nil, nil)
 		require.NoError(t, err)
 
 		if len(firstPage) > 0 && len(secondPage) > 0 {
@@ -147,4 +147,23 @@ func TestGetPvz(t *testing.T) {
 			}
 		}
 	})
+}
+
+func TestGetAllPvz(t *testing.T) {
+	pool, cleanup := SetupPostgresContainer(t)
+	defer cleanup()
+
+	driver := pvz_driver.NewPvzDriver(pool)
+	ctx := context.Background()
+
+	_, _, _, err := createTestData(ctx, pool)
+	require.NoError(t, err)
+
+	results, err := driver.GetAllPvz(ctx)
+
+	require.NoError(t, err)
+	assert.NotEmpty(t, results)
+	assert.Equal(t, 2, len(results))
+	assert.Equal(t, pvz_model.Moscow, results[0].City)
+	assert.Equal(t, pvz_model.SPb, results[1].City)
 }

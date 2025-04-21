@@ -2,13 +2,13 @@ package drivers
 
 import (
 	"context"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/drivers/user_driver"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/custom_errors"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/user_model"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"pvz/internal/drivers/user_driver"
-	"pvz/internal/models/custom_errors"
-	"pvz/internal/models/user_model"
 	"testing"
 )
 

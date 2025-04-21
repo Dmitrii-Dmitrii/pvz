@@ -1,8 +1,6 @@
 package custom_errors
 
-import (
-	"fmt"
-)
+import "fmt"
 
 type InternalError struct {
 	Err     error

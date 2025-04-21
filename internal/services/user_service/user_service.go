@@ -3,17 +3,17 @@ package user_service
 import (
 	"context"
 	"errors"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/drivers/user_driver"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/generated"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/custom_errors"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/user_model"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/services"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/bcrypt"
-	"pvz/internal/drivers/user_driver"
-	"pvz/internal/generated"
-	"pvz/internal/models/custom_errors"
-	"pvz/internal/models/user_model"
-	"pvz/internal/services"
 	"time"
 )
 

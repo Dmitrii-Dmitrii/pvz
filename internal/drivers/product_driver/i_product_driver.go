@@ -2,8 +2,8 @@ package product_driver
 
 import (
 	"context"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/product_model"
 	"github.com/jackc/pgx/v5/pgtype"
-	"pvz/internal/models/product_model"
 )
 
 type IProductDriver interface {

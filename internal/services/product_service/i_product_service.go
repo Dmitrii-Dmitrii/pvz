@@ -2,8 +2,8 @@ package product_service
 
 import (
 	"context"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/generated"
 	openapi_types "github.com/oapi-codegen/runtime/types"
-	"pvz/internal/generated"
 )
 
 type IProductService interface {

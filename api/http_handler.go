@@ -2,17 +2,17 @@ package api
 
 import (
 	"errors"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/generated"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/custom_errors"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/user_model"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/services/product_service"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/services/pvz_service"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/services/reception_service"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/services/user_service"
 	"github.com/gin-gonic/gin"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/rs/zerolog/log"
 	"net/http"
-	"pvz/internal/generated"
-	"pvz/internal/models/custom_errors"
-	"pvz/internal/models/user_model"
-	"pvz/internal/services/product_service"
-	"pvz/internal/services/pvz_service"
-	"pvz/internal/services/reception_service"
-	"pvz/internal/services/user_service"
 )
 
 type HttpHandler struct {
@@ -141,7 +141,7 @@ func (h *HttpHandler) PostProducts(c *gin.Context) {
 func (h *HttpHandler) GetPvz(c *gin.Context, params generated.GetPvzParams) {
 	log.Info().Msg("get pvz started")
 
-	pvzResp, err := h.pvzService.GetPvz(c.Request.Context(), params)
+	pvzResp, err := h.pvzService.GetPvzFullInfo(c.Request.Context(), params)
 	var userErr *custom_errors.UserError
 	if errors.As(err, &userErr) {
 		c.JSON(http.StatusBadRequest, generated.Error{Message: "Invalid request format to get pvz: " + err.Error()})

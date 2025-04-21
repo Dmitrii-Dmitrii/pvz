@@ -1,11 +1,11 @@
 package services
 
 import (
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/custom_errors"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/rs/zerolog/log"
-	"pvz/internal/models/custom_errors"
 )
 
 func GenerateUuid() pgtype.UUID {

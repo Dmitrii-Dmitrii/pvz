@@ -2,8 +2,8 @@ package reception_driver
 
 import (
 	"context"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/reception_model"
 	"github.com/jackc/pgx/v5/pgtype"
-	"pvz/internal/models/reception_model"
 )
 
 type IReceptionDriver interface {

@@ -2,15 +2,15 @@ package services
 
 import (
 	"context"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/generated"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/custom_errors"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/product_model"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/reception_model"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/services/product_service"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"pvz/internal/generated"
-	"pvz/internal/models/custom_errors"
-	"pvz/internal/models/product_model"
-	"pvz/internal/models/reception_model"
-	"pvz/internal/services/product_service"
 	"testing"
 )
 

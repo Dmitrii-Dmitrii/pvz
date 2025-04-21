@@ -3,6 +3,10 @@ package services
 import (
 	"context"
 	"errors"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/generated"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/custom_errors"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/user_model"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/services/user_service"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -12,10 +16,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 	"os"
-	"pvz/internal/generated"
-	"pvz/internal/models/custom_errors"
-	"pvz/internal/models/user_model"
-	"pvz/internal/services/user_service"
 	"testing"
 	"time"
 )

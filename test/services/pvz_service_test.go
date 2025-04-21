@@ -3,14 +3,14 @@ package services
 import (
 	"context"
 	"errors"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/generated"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/custom_errors"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/pvz_model"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/services/pvz_service"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"pvz/internal/generated"
-	"pvz/internal/models/custom_errors"
-	"pvz/internal/models/pvz_model"
-	"pvz/internal/services/pvz_service"
 	"testing"
 	"time"
 )
@@ -32,12 +32,20 @@ func (m *MockPvzDriver) CreatePvz(ctx context.Context, pvz *pvz_model.Pvz) error
 	return args.Error(0)
 }
 
-func (m *MockPvzDriver) GetPvz(ctx context.Context, limit uint32, offset uint32, startDate *time.Time, endDate *time.Time) ([]map[string]interface{}, error) {
+func (m *MockPvzDriver) GetPvzFullInfo(ctx context.Context, limit uint32, offset uint32, startDate *time.Time, endDate *time.Time) ([]map[string]interface{}, error) {
 	args := m.Called(ctx, limit, offset, startDate, endDate)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).([]map[string]interface{}), args.Error(1)
+}
+
+func (m *MockPvzDriver) GetAllPvz(ctx context.Context) ([]pvz_model.Pvz, error) {
+	args := m.Called(ctx)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]pvz_model.Pvz), args.Error(1)
 }
 
 func TestCreatePvz(t *testing.T) {
@@ -167,9 +175,9 @@ func TestGetPvz(t *testing.T) {
 			{"id": "456", "city": "Санкт-Петербург"},
 		}
 
-		mockDriver.On("GetPvz", ctx, uint32(10), uint32(0), (*time.Time)(nil), (*time.Time)(nil)).Return(expectedPvzList, nil)
+		mockDriver.On("GetPvzFullInfo", ctx, uint32(10), uint32(0), (*time.Time)(nil), (*time.Time)(nil)).Return(expectedPvzList, nil)
 
-		result, err := service.GetPvz(ctx, params)
+		result, err := service.GetPvzFullInfo(ctx, params)
 
 		assert.NoError(t, err)
 		assert.Equal(t, expectedPvzList, result)
@@ -197,9 +205,9 @@ func TestGetPvz(t *testing.T) {
 			{"id": "789", "city": "Казань"},
 		}
 
-		mockDriver.On("GetPvz", ctx, uint32(20), uint32(20), &startDate, &endDate).Return(expectedPvzList, nil)
+		mockDriver.On("GetPvzFullInfo", ctx, uint32(20), uint32(20), &startDate, &endDate).Return(expectedPvzList, nil)
 
-		result, err := service.GetPvz(ctx, params)
+		result, err := service.GetPvzFullInfo(ctx, params)
 
 		assert.NoError(t, err)
 		assert.Equal(t, expectedPvzList, result)
@@ -218,12 +226,12 @@ func TestGetPvz(t *testing.T) {
 			EndDate:   &endDate,
 		}
 
-		result, err := service.GetPvz(ctx, params)
+		result, err := service.GetPvzFullInfo(ctx, params)
 
 		assert.Error(t, err)
 		assert.Equal(t, custom_errors.ErrDateRange, err)
 		assert.Nil(t, result)
-		mockDriver.AssertNotCalled(t, "GetPvz")
+		mockDriver.AssertNotCalled(t, "GetPvzFullInfo")
 	})
 
 	t.Run("Get pvz with invalid limit", func(t *testing.T) {
@@ -236,12 +244,12 @@ func TestGetPvz(t *testing.T) {
 				Limit: &tooLargeLimit,
 			}
 
-			result, err := service.GetPvz(ctx, params)
+			result, err := service.GetPvzFullInfo(ctx, params)
 
 			assert.Error(t, err)
 			assert.Equal(t, custom_errors.ErrLimitValue, err)
 			assert.Nil(t, result)
-			mockDriver.AssertNotCalled(t, "GetPvz")
+			mockDriver.AssertNotCalled(t, "GetPvzFullInfo")
 		})
 
 		t.Run("Get pvz with too small limit", func(t *testing.T) {
@@ -253,12 +261,12 @@ func TestGetPvz(t *testing.T) {
 				Limit: &tooSmallLimit,
 			}
 
-			result, err := service.GetPvz(ctx, params)
+			result, err := service.GetPvzFullInfo(ctx, params)
 
 			assert.Error(t, err)
 			assert.Equal(t, custom_errors.ErrLimitValue, err)
 			assert.Nil(t, result)
-			mockDriver.AssertNotCalled(t, "GetPvz")
+			mockDriver.AssertNotCalled(t, "GetPvzFullInfo")
 		})
 	})
 
@@ -271,12 +279,12 @@ func TestGetPvz(t *testing.T) {
 			Page: &invalidPage,
 		}
 
-		result, err := service.GetPvz(ctx, params)
+		result, err := service.GetPvzFullInfo(ctx, params)
 
 		assert.Error(t, err)
 		assert.Equal(t, custom_errors.ErrPageValue, err)
 		assert.Nil(t, result)
-		mockDriver.AssertNotCalled(t, "GetPvz")
+		mockDriver.AssertNotCalled(t, "GetPvzFullInfo")
 	})
 
 	t.Run("Get pvz with driver error", func(t *testing.T) {
@@ -286,12 +294,52 @@ func TestGetPvz(t *testing.T) {
 		params := generated.GetPvzParams{}
 		expectedError := errors.New("database connection error")
 
-		mockDriver.On("GetPvz", ctx, uint32(10), uint32(0), (*time.Time)(nil), (*time.Time)(nil)).Return(nil, expectedError)
+		mockDriver.On("GetPvzFullInfo", ctx, uint32(10), uint32(0), (*time.Time)(nil), (*time.Time)(nil)).Return(nil, expectedError)
 
-		result, err := service.GetPvz(ctx, params)
+		result, err := service.GetPvzFullInfo(ctx, params)
 
 		assert.Error(t, err)
 		assert.Equal(t, expectedError, err)
+		assert.Nil(t, result)
+		mockDriver.AssertExpectations(t)
+	})
+}
+
+func TestGetAllPvz(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("Get all pvz", func(t *testing.T) {
+		mockDriver := new(MockPvzDriver)
+		service := pvz_service.NewPvzService(mockDriver)
+
+		expectedPvzList := []pvz_model.Pvz{
+			{
+				Id:               pgtype.UUID{Bytes: uuid.New(), Valid: true},
+				RegistrationDate: time.Now(),
+				City:             pvz_model.Moscow,
+			},
+		}
+
+		mockDriver.On("GetAllPvz", ctx).Return(expectedPvzList, nil)
+
+		result, err := service.GetAllPvz(ctx)
+
+		assert.NoError(t, err)
+		assert.Equal(t, expectedPvzList, result)
+		mockDriver.AssertExpectations(t)
+	})
+
+	t.Run("Get all pvz with error", func(t *testing.T) {
+		mockDriver := new(MockPvzDriver)
+		service := pvz_service.NewPvzService(mockDriver)
+
+		internalErr := errors.New("database connection error")
+		mockDriver.On("GetAllPvz", ctx).Return(nil, internalErr)
+
+		result, err := service.GetAllPvz(ctx)
+
+		assert.Error(t, err)
+		assert.Equal(t, internalErr, err)
 		assert.Nil(t, result)
 		mockDriver.AssertExpectations(t)
 	})

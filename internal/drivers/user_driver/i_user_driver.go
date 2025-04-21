@@ -2,8 +2,8 @@ package user_driver
 
 import (
 	"context"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/user_model"
 	"github.com/jackc/pgx/v5/pgtype"
-	"pvz/internal/models/user_model"
 )
 
 type IUserDriver interface {

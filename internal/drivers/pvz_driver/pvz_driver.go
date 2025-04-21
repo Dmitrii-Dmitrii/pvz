@@ -4,17 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/drivers"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/generated"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/custom_errors"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/product_model"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/pvz_model"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/reception_model"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/services"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog/log"
-	"pvz/internal/drivers"
-	"pvz/internal/generated"
-	"pvz/internal/models/custom_errors"
-	"pvz/internal/models/product_model"
-	"pvz/internal/models/pvz_model"
-	"pvz/internal/models/reception_model"
-	"pvz/internal/services"
 	"time"
 )
 
@@ -36,7 +36,7 @@ func (d *PvzDriver) CreatePvz(ctx context.Context, pvz *pvz_model.Pvz) error {
 	return nil
 }
 
-func (d *PvzDriver) GetPvz(ctx context.Context, limit, offset uint32, startInterval, endInterval *time.Time) ([]map[string]interface{}, error) {
+func (d *PvzDriver) GetPvzFullInfo(ctx context.Context, limit, offset uint32, startInterval, endInterval *time.Time) ([]map[string]interface{}, error) {
 	query, params := getQueryGetPvz(limit, offset, startInterval, endInterval)
 
 	rows, err := d.rwdb.Query(ctx, query, params...)
@@ -75,6 +75,38 @@ func (d *PvzDriver) GetPvzById(ctx context.Context, id pgtype.UUID) (*pvz_model.
 
 	pvz := &pvz_model.Pvz{Id: id, RegistrationDate: registrationDate, City: city}
 	return pvz, nil
+}
+
+func (d *PvzDriver) GetAllPvz(ctx context.Context) ([]pvz_model.Pvz, error) {
+	rows, err := d.rwdb.Query(ctx, drivers.QueryGetAllPvz)
+	if err != nil {
+		log.Error().Err(err).Msg(custom_errors.ErrGetPvz.Message)
+		return nil, custom_errors.ErrGetPvz
+	}
+	defer rows.Close()
+
+	var pvzList []pvz_model.Pvz
+	for rows.Next() {
+		var id pgtype.UUID
+		var registrationDate time.Time
+		var city pvz_model.City
+
+		err = rows.Scan(&id, &registrationDate, &city)
+		if err != nil {
+			log.Error().Err(err).Msg(custom_errors.ErrScanRow.Message)
+			return nil, custom_errors.ErrScanRow
+		}
+
+		pvz := pvz_model.Pvz{
+			Id:               id,
+			RegistrationDate: registrationDate,
+			City:             city,
+		}
+
+		pvzList = append(pvzList, pvz)
+	}
+
+	return pvzList, nil
 }
 
 func getQueryGetPvz(limit, offset uint32, startInterval, endInterval *time.Time) (string, []interface{}) {

@@ -3,14 +3,14 @@ package pvz_service
 import (
 	"context"
 	"errors"
+	"github.com/Dmitrii-Dmitrii/pvz/internal"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/drivers/pvz_driver"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/generated"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/custom_errors"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/models/pvz_model"
+	"github.com/Dmitrii-Dmitrii/pvz/internal/services"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/rs/zerolog/log"
-	"pvz/internal"
-	"pvz/internal/drivers/pvz_driver"
-	"pvz/internal/generated"
-	"pvz/internal/models/custom_errors"
-	"pvz/internal/models/pvz_model"
-	"pvz/internal/services"
 	"time"
 )
 
@@ -74,7 +74,7 @@ func (s *PvzService) CreatePvz(ctx context.Context, pvzDto generated.PVZ) (*gene
 	return &pvzDto, nil
 }
 
-func (s *PvzService) GetPvz(ctx context.Context, pvzParams generated.GetPvzParams) ([]map[string]interface{}, error) {
+func (s *PvzService) GetPvzFullInfo(ctx context.Context, pvzParams generated.GetPvzParams) ([]map[string]interface{}, error) {
 	if pvzParams.StartDate != nil && pvzParams.EndDate != nil {
 		if pvzParams.EndDate.Before(*pvzParams.StartDate) {
 			log.Error().Msg(custom_errors.ErrDateRange.Message)
@@ -104,7 +104,11 @@ func (s *PvzService) GetPvz(ctx context.Context, pvzParams generated.GetPvzParam
 
 	offset := (page - 1) * limit
 
-	return s.driver.GetPvz(ctx, uint32(limit), uint32(offset), pvzParams.StartDate, pvzParams.EndDate)
+	return s.driver.GetPvzFullInfo(ctx, uint32(limit), uint32(offset), pvzParams.StartDate, pvzParams.EndDate)
+}
+
+func (s *PvzService) GetAllPvz(ctx context.Context) ([]pvz_model.Pvz, error) {
+	return s.driver.GetAllPvz(ctx)
 }
 
 func mapCityDtoToCity(cityDto generated.PVZCity) (pvz_model.City, error) {
