@@ -135,7 +135,7 @@ type PostProductsJSONBody struct {
 // PostProductsJSONBodyType defines parameters for PostProducts.
 type PostProductsJSONBodyType string
 
-// GetPvzParams defines parameters for GetPvzFullInfo.
+// GetPvzParams defines parameters for GetPvz.
 type GetPvzParams struct {
 	// StartDate Начальная дата диапазона
 	StartDate *time.Time `form:"startDate,omitempty" json:"startDate,omitempty"`
