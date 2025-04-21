@@ -13,21 +13,20 @@ import (
 	"github.com/Dmitrii-Dmitrii/pvz/internal/services"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog/log"
 	"time"
 )
 
 type PvzDriver struct {
-	rwdb *pgxpool.Pool
+	adapter drivers.Adapter
 }
 
-func NewPvzDriver(rwdb *pgxpool.Pool) *PvzDriver {
-	return &PvzDriver{rwdb: rwdb}
+func NewPvzDriver(adapter drivers.Adapter) *PvzDriver {
+	return &PvzDriver{adapter: adapter}
 }
 
 func (d *PvzDriver) CreatePvz(ctx context.Context, pvz *pvz_model.Pvz) error {
-	_, err := d.rwdb.Exec(ctx, drivers.QueryCreatePvz, pvz.Id, pvz.RegistrationDate, pvz.City)
+	_, err := d.adapter.Exec(ctx, drivers.QueryCreatePvz, pvz.Id, pvz.RegistrationDate, pvz.City)
 	if err != nil {
 		log.Error().Err(err).Msg(custom_errors.ErrCreatePvz.Message)
 		return custom_errors.ErrCreatePvz
@@ -39,7 +38,7 @@ func (d *PvzDriver) CreatePvz(ctx context.Context, pvz *pvz_model.Pvz) error {
 func (d *PvzDriver) GetPvzFullInfo(ctx context.Context, limit, offset uint32, startInterval, endInterval *time.Time) ([]map[string]interface{}, error) {
 	query, params := getQueryGetPvz(limit, offset, startInterval, endInterval)
 
-	rows, err := d.rwdb.Query(ctx, query, params...)
+	rows, err := d.adapter.Query(ctx, query, params...)
 	if err != nil {
 		log.Error().Err(err).Msg(custom_errors.ErrGetPvz.Message)
 		return nil, custom_errors.ErrGetPvz
@@ -63,7 +62,7 @@ func (d *PvzDriver) GetPvzById(ctx context.Context, id pgtype.UUID) (*pvz_model.
 	var registrationDate time.Time
 	var city pvz_model.City
 
-	err := d.rwdb.QueryRow(ctx, drivers.QueryGetPvzById, id).Scan(&registrationDate, &city)
+	err := d.adapter.QueryRow(ctx, drivers.QueryGetPvzById, id).Scan(&registrationDate, &city)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, custom_errors.ErrPvzNotFound
@@ -78,7 +77,7 @@ func (d *PvzDriver) GetPvzById(ctx context.Context, id pgtype.UUID) (*pvz_model.
 }
 
 func (d *PvzDriver) GetAllPvz(ctx context.Context) ([]pvz_model.Pvz, error) {
-	rows, err := d.rwdb.Query(ctx, drivers.QueryGetAllPvz)
+	rows, err := d.adapter.Query(ctx, drivers.QueryGetAllPvz)
 	if err != nil {
 		log.Error().Err(err).Msg(custom_errors.ErrGetPvz.Message)
 		return nil, custom_errors.ErrGetPvz

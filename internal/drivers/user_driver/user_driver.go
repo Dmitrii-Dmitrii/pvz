@@ -8,20 +8,19 @@ import (
 	"github.com/Dmitrii-Dmitrii/pvz/internal/models/user_model"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog/log"
 )
 
 type UserDriver struct {
-	rwdb *pgxpool.Pool
+	adapter drivers.Adapter
 }
 
-func NewUserDriver(rwdb *pgxpool.Pool) *UserDriver {
-	return &UserDriver{rwdb: rwdb}
+func NewUserDriver(adapter drivers.Adapter) *UserDriver {
+	return &UserDriver{adapter: adapter}
 }
 
 func (d *UserDriver) CreateUser(ctx context.Context, user *user_model.User) error {
-	_, err := d.rwdb.Exec(ctx, drivers.QueryCreateUser, user.Id, user.Email, user.PasswordHash, user.Role)
+	_, err := d.adapter.Exec(ctx, drivers.QueryCreateUser, user.Id, user.Email, user.PasswordHash, user.Role)
 	if err != nil {
 		log.Error().Err(err).Msg(custom_errors.ErrCreateUser.Message)
 		return custom_errors.ErrCreateUser
@@ -35,7 +34,7 @@ func (d *UserDriver) GetUserByEmail(ctx context.Context, email string) (*user_mo
 	var passwordHash []byte
 	var userRole user_model.UserRole
 
-	err := d.rwdb.QueryRow(ctx, drivers.QueryGetUserByEmail, email).Scan(&id, &passwordHash, &userRole)
+	err := d.adapter.QueryRow(ctx, drivers.QueryGetUserByEmail, email).Scan(&id, &passwordHash, &userRole)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, custom_errors.ErrUserNotFound
@@ -54,7 +53,7 @@ func (d *UserDriver) GetUserById(ctx context.Context, id pgtype.UUID) (*user_mod
 	var passwordHash []byte
 	var userRole user_model.UserRole
 
-	err := d.rwdb.QueryRow(ctx, drivers.QueryGetUserById, id).Scan(&email, &passwordHash, &userRole)
+	err := d.adapter.QueryRow(ctx, drivers.QueryGetUserById, id).Scan(&email, &passwordHash, &userRole)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, custom_errors.ErrUserNotFound

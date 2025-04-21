@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-func TestCreateUser(t *testing.T) {
+func TestCreateUserIntegration(t *testing.T) {
 	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 
@@ -45,7 +45,7 @@ func TestCreateUser(t *testing.T) {
 	assert.NotEmpty(t, dbPasswordHash)
 }
 
-func TestGetUserByEmail(t *testing.T) {
+func TestGetUserByEmailIntegration(t *testing.T) {
 	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 
@@ -75,7 +75,7 @@ func TestGetUserByEmail(t *testing.T) {
 	})
 }
 
-func TestGetUserById(t *testing.T) {
+func TestGetUserByIdIntegration(t *testing.T) {
 	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 

@@ -6,20 +6,19 @@ import (
 	"github.com/Dmitrii-Dmitrii/pvz/internal/models/custom_errors"
 	"github.com/Dmitrii-Dmitrii/pvz/internal/models/product_model"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog/log"
 )
 
 type ProductDriver struct {
-	rwdb *pgxpool.Pool
+	adapter drivers.Adapter
 }
 
-func NewProductDriver(rwdb *pgxpool.Pool) *ProductDriver {
-	return &ProductDriver{rwdb: rwdb}
+func NewProductDriver(adapter drivers.Adapter) *ProductDriver {
+	return &ProductDriver{adapter: adapter}
 }
 
 func (d *ProductDriver) CreateProduct(ctx context.Context, product *product_model.Product, pvzId pgtype.UUID) (*pgtype.UUID, error) {
-	tx, err := d.rwdb.Begin(ctx)
+	tx, err := d.adapter.Begin(ctx)
 	if err != nil {
 		log.Error().Err(err).Msg(custom_errors.ErrBeginTransaction.Message)
 		return nil, custom_errors.ErrBeginTransaction
@@ -46,7 +45,7 @@ func (d *ProductDriver) CreateProduct(ctx context.Context, product *product_mode
 }
 
 func (d *ProductDriver) DeleteLastProduct(ctx context.Context, pvzId pgtype.UUID) error {
-	tx, err := d.rwdb.Begin(ctx)
+	tx, err := d.adapter.Begin(ctx)
 	if err != nil {
 		log.Error().Err(err).Msg(custom_errors.ErrBeginTransaction.Message)
 		return custom_errors.ErrBeginTransaction

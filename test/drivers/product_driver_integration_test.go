@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-func TestCreateProduct(t *testing.T) {
+func TestCreateProductIntegration(t *testing.T) {
 	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 
@@ -54,7 +54,7 @@ func TestCreateProduct(t *testing.T) {
 	assert.Equal(t, string(productType), dbProductType)
 }
 
-func TestDeleteLastProduct(t *testing.T) {
+func TestDeleteLastProductIntegration(t *testing.T) {
 	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 

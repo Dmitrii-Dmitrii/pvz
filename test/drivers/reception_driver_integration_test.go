@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func TestCreateReception(t *testing.T) {
+func TestCreateReceptionIntegration(t *testing.T) {
 	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 
@@ -50,7 +50,7 @@ func TestCreateReception(t *testing.T) {
 	assert.Equal(t, string(status), dbStatus)
 }
 
-func TestCloseReception(t *testing.T) {
+func TestCloseReceptionIntegration(t *testing.T) {
 	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 
@@ -93,7 +93,7 @@ func TestCloseReception(t *testing.T) {
 	})
 }
 
-func TestGetLastReceptionStatus(t *testing.T) {
+func TestGetLastReceptionStatusIntegration(t *testing.T) {
 	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 

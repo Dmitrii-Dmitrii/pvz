@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreatePvz(t *testing.T) {
+func TestCreatePvzIntegration(t *testing.T) {
 	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 
@@ -44,7 +44,7 @@ func TestCreatePvz(t *testing.T) {
 	assert.Equal(t, string(city), dbCity)
 }
 
-func TestGetPvzById(t *testing.T) {
+func TestGetPvzByIdIntegration(t *testing.T) {
 	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 
@@ -75,7 +75,7 @@ func TestGetPvzById(t *testing.T) {
 	})
 }
 
-func TestGetPvzFullInfo(t *testing.T) {
+func TestGetPvzFullInfoIntegration(t *testing.T) {
 	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 
@@ -149,7 +149,7 @@ func TestGetPvzFullInfo(t *testing.T) {
 	})
 }
 
-func TestGetAllPvz(t *testing.T) {
+func TestGetAllPvzIntegration(t *testing.T) {
 	pool, cleanup := SetupPostgresContainer(t)
 	defer cleanup()
 

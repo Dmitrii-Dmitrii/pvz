@@ -8,21 +8,20 @@ import (
 	"github.com/Dmitrii-Dmitrii/pvz/internal/models/reception_model"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog/log"
 	"time"
 )
 
 type ReceptionDriver struct {
-	rwdb *pgxpool.Pool
+	adapter drivers.Adapter
 }
 
-func NewReceptionDriver(rwdb *pgxpool.Pool) *ReceptionDriver {
-	return &ReceptionDriver{rwdb: rwdb}
+func NewReceptionDriver(adapter drivers.Adapter) *ReceptionDriver {
+	return &ReceptionDriver{adapter: adapter}
 }
 
 func (d *ReceptionDriver) CreateReception(ctx context.Context, reception *reception_model.Reception) error {
-	_, err := d.rwdb.Exec(ctx, drivers.QueryCreateReception, reception.Id, reception.ReceptionTime, reception.PvzId, reception.Status)
+	_, err := d.adapter.Exec(ctx, drivers.QueryCreateReception, reception.Id, reception.ReceptionTime, reception.PvzId, reception.Status)
 	if err != nil {
 		log.Error().Err(err).Msg(custom_errors.ErrCreateReception.Message)
 		return custom_errors.ErrCreateReception
@@ -32,7 +31,7 @@ func (d *ReceptionDriver) CreateReception(ctx context.Context, reception *recept
 }
 
 func (d *ReceptionDriver) CloseReception(ctx context.Context, pvzId pgtype.UUID) (*reception_model.Reception, error) {
-	tx, err := d.rwdb.Begin(ctx)
+	tx, err := d.adapter.Begin(ctx)
 	if err != nil {
 		log.Error().Err(err).Msg(custom_errors.ErrBeginTransaction.Message)
 		return nil, custom_errors.ErrBeginTransaction
@@ -66,7 +65,7 @@ func (d *ReceptionDriver) CloseReception(ctx context.Context, pvzId pgtype.UUID)
 
 func (d *ReceptionDriver) GetLastReceptionStatus(ctx context.Context, pvzId pgtype.UUID) (*reception_model.ReceptionStatus, error) {
 	var status reception_model.ReceptionStatus
-	err := d.rwdb.QueryRow(ctx, drivers.QueryGetLastReceptionStatus, pvzId).Scan(&status)
+	err := d.adapter.QueryRow(ctx, drivers.QueryGetLastReceptionStatus, pvzId).Scan(&status)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, custom_errors.ErrNoReception
 	}
@@ -83,7 +82,7 @@ func (d *ReceptionDriver) getReception(ctx context.Context, id pgtype.UUID) (*re
 	var receptionTime time.Time
 	var pvzId pgtype.UUID
 	var status reception_model.ReceptionStatus
-	err := d.rwdb.QueryRow(ctx, drivers.QueryGetReception, id).Scan(&receptionTime, &pvzId, &status)
+	err := d.adapter.QueryRow(ctx, drivers.QueryGetReception, id).Scan(&receptionTime, &pvzId, &status)
 	if err != nil {
 		log.Error().Err(err).Msg(custom_errors.ErrGetReception.Message)
 		return nil, custom_errors.ErrGetReception
